@@ -18,7 +18,7 @@
   #####     NODE AND INTERFACE PROFILES       ####
   ################################################
     - name: Create Leaf Profiles
-      aci_switch_policy_leaf_profile:
+      cisco.aci.aci_switch_policy_leaf_profile:
         <<: *aci_login
         leaf_profile: "{{ item.name }}"
         description: "{{ item.desc }}"
@@ -33,7 +33,7 @@
       - switch-profiles
 
     - name: Add Leaf Selectors to Leaf Profiles
-      aci_switch_leaf_selector:
+      cisco.aci.aci_switch_leaf_selector:
         <<: *aci_login
         leaf_profile: "{{ item.name }}"
         leaf: "{{ item.leaf }}"
@@ -51,10 +51,10 @@
       - switch-profiles-leaf-selectors
 
     - name: Add Leaf Interface Profiles
-      aci_interface_policy_leaf_profile:
+      cisco.aci.aci_interface_policy_leaf_profile:
         <<: *aci_login
         leaf_interface_profile: "{{ item.name }}"
-        description: "create with ansible"
+        description: "created with Ansible"
         state: "{{ desired_state }}"
       loop:
         - { name: "leaf101_interfaces"}
@@ -64,7 +64,7 @@
       - interface_profiles
 
     - name: Associate Leaf Interface Profile to Switch Profile
-      aci_interface_selector_to_switch_policy_leaf_profile:
+      cisco.aci.aci_interface_selector_to_switch_policy_leaf_profile:
         <<: *aci_login
         leaf_profile: "{{ item.leaf }}"
         interface_selector: "{{ item.interface }}"
@@ -77,7 +77,7 @@
       - interface_profiles
 
     - name: Create Leaf Access Port Policy Group
-      aci_interface_policy_leaf_policy_group:
+      cisco.aci.aci_interface_policy_leaf_policy_group:
         <<: *aci_login
         lag_type: leaf
         policy_group: "{{ item.name}}"
@@ -94,7 +94,7 @@
       - interface_policy_group
 
     - name: Create Leaf VPC Port Policy Group
-      aci_interface_policy_leaf_policy_group:
+      cisco.aci.aci_interface_policy_leaf_policy_group:
         <<: *aci_login
         lag_type: node
         policy_group: "{{ item.name}}"
@@ -109,7 +109,7 @@
       - interface_policy_group
 
     - name: Associate Interface Selector to Interface Leaf Profile
-      aci_access_port_to_interface_policy_leaf_profile:
+      cisco.aci.aci_access_port_to_interface_policy_leaf_profile:
         <<: *aci_login
         leaf_interface_profile: "{{ item.ifProf}}"
         access_port_selector: "{{ item.ifSel}}"
@@ -132,8 +132,8 @@
   ################################################
   #####           INTERFACE POLICIES          ####
   ################################################
-    - name: Create Interface Policy for Link Level Options with aci_rest
-      aci_rest:
+    - name: Create Interface Policy for Link Level Options with cisco.aci.aci_rest
+      cisco.aci.aci_rest:
         <<: *aci_login
         method: post
         path: /api/mo/uni.xml
@@ -152,7 +152,7 @@
       - link_level
 
     - name: Create Interface Policy for LLDP
-      aci_interface_policy_lldp:
+      cisco.aci.aci_interface_policy_lldp:
         <<: *aci_login
         lldp_policy: "{{ item.name }}"
         description: "{{ item.desc }}"
@@ -180,7 +180,7 @@
       - cdp
 
     - name: Create Interface Policy for MCP
-      aci_interface_policy_mcp:
+      cisco.aci.aci_interface_policy_mcp:
         <<: *aci_login
         mcp: "{{ item.name }}"
         description: "{{ item.desc }}"
@@ -194,10 +194,10 @@
       - mcp
 
     - name: Create Interface Policy for LACP
-      aci_interface_policy_port_channel:
+      cisco.aci.aci_interface_policy_port_channel:
         <<: *aci_login
         port_channel: "{{ item.name }}"
-        description: "created with ansible"
+        description: "LACP active"
         min_links: "{{ item.min }}"
         max_links: "{{ item.max }}"
         mode: "{{ item.mode }}"
@@ -212,7 +212,7 @@
   #####              VLAN POOLS               ####
   ################################################
     - name: Create Vlan Pools
-      aci_vlan_pool:
+      cisco.aci.aci_vlan_pool:
         <<: *aci_login
         pool: "{{ item.pool }}"
         pool_allocation_mode: "{{ item.allocation }}"
@@ -229,7 +229,7 @@
       - vlan_pools
 
     - name: Add Vlan encap blocks to Vlan Pools
-      aci_vlan_pool_encap_block:
+      cisco.aci.aci_vlan_pool_encap_block:
         <<: *aci_login
         pool: "{{ item.pool }}"
         pool_allocation_mode: "{{ item.allocation }}"
@@ -252,7 +252,7 @@
   #####              DOMAINS                  ####
   ################################################
     - name: Create non-VMM domains
-      aci_domain:
+      cisco.aci.aci_domain:
         <<: *aci_login
         domain: "{{ item.dom }}"
         domain_type: "{{ item.type }}"
@@ -266,7 +266,7 @@
       - physical_domains
 
     - name: Create VMM Domains
-      aci_domain:
+      cisco.aci.aci_domain:
         <<: *aci_login
         domain: "{{ item.dom }}"
         domain_type: "{{ item.type }}"
@@ -279,7 +279,7 @@
       - vmm_domains
 
     - name: Bind non-VMM Domains to Vlan Pools
-      aci_domain_to_vlan_pool:
+      cisco.aci.aci_domain_to_vlan_pool:
         <<: *aci_login
         domain: "{{ item.dom }}"
         domain_type: "{{ item.type }}"
@@ -295,7 +295,7 @@
       - physical_domains
 
     - name: Bind VMM Domains to Vlan Pools
-      aci_domain_to_vlan_pool:
+      cisco.aci.aci_domain_to_vlan_pool:
         <<: *aci_login
         domain: "{{ item.dom }}"
         domain_type: "{{ item.type }}"
@@ -313,7 +313,7 @@
   #####                AAEP                   ####
   ################################################
     - name: Create AAEPs
-      aci_aep:
+      cisco.aci.aci_aep:
         <<: *aci_login
         aep: "{{ item.name }}"
         description: " {{ item.desc }}"
@@ -329,7 +329,7 @@
       - aaep
 
     - name: Bind AAEPs to non-VMM Domains
-      aci_aep_to_domain:
+      cisco.aci.aci_aep_to_domain:
         <<: *aci_login
         aep: "{{ item.name }}"
         domain: "{{ item.dom}}"
@@ -344,7 +344,7 @@
       - aaep
 
     - name: Binding AEP to VMM Domains
-      aci_aep_to_domain:
+      cisco.aci.aci_aep_to_domain:
         <<: *aci_login
         aep: "{{ item.name }}"
         domain: "{{ item.dom}}"
