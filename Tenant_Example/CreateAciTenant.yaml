@@ -1,0 +1,268 @@
+---
+- name: Create a complete tenant on ACI using hierarchical variables
+  hosts: aci
+  gather_facts: no
+  connection: local
+  #############################################################################
+  # For the sake of keeping things simple, variables are directly included in #
+  # the playbook. Of course you can move those variables outside the playbook #
+  # into a var.vars file. The outcome is exactly the same. Choose what works  #
+  # the best for you.                                                         #
+  #                                                                           #
+  # This playbook assumes a L3out called internet is already in place. Tailor #
+  # as you see fit.                                                           #
+  #############################################################################
+  vars:
+    aci_creds: &aci_login
+      hostname: '{{inventory_hostname}}'
+      use_proxy: no
+      use_ssl: yes
+      username: ansible
+      password: cisco
+      validate_certs: no
+    tenant:
+      name: 'Demo'
+      state: 'present'
+      vrf:
+        name: 'vrf1'
+        enforce: 'enforced'
+        descr: 'primary VRF'
+        bds:
+          - {name: 'bd1', gw: '192.168.1.1', mask: '24', scope: 'public,shared'}
+          - {name: 'bd2', gw: '192.168.2.1', mask: '24', scope: 'public,shared'}
+          - {name: 'bd3', gw: '192.168.3.1', mask: '24', scope: 'public,shared'}
+      ap:
+        name: 'ap1'
+      epgs:
+        - {name: 'epg1', descr: 'epg one', bd: 'bd1', ap: 'ap1', domain: 'prod'}
+        - {name: 'epg2', descr: 'epg two', bd: 'bd2', ap: 'ap1', domain: 'prod'}
+        - {name: 'epg3', descr: 'epg three', bd: 'bd3', ap: 'ap1', domain: 'prod'}
+    l3out:
+      name: 'internet'
+    contracts:
+      - contract: "Web-App"
+        subject: "subject1"
+        filter: "http"
+      - contract: "Web-App"
+        subject: "subject2"
+        filter: "icmp"
+      - contract: "Cache"
+        subject: "subject1"
+        filter: "cache"
+      - contract: "Cache"
+        subject: "subject2"
+        filter: "icmp"
+      - contract: "SQL"
+        subject: "subject1"
+        filter: "sql"
+      - contract: "SQL"
+        subject: "subject2"
+        filter: "icmp"
+    filters:
+      - filter: "sql"
+        entry: "sql"
+        protocol: "tcp"
+        port: "3306"
+      - filter: "http"
+        entry: "http"
+        protocol: "tcp"
+        port: "8080"
+      - filter: "icmp"
+        entry: "icmp"
+        protocol: "icmp"
+        port: "0"
+      - filter: "cache"
+        entry: "cache"
+        protocol: "tcp"
+        port: "6379"
+    epg_contracts:
+      - epg: "epg1"
+        contract: "Web-App"
+        type: "provider"
+      - epg: "epg1"
+        contract: "default"
+        type: "consumer"
+      - epg: "epg1"
+        contract: "SQL"
+        type: "consumer"
+      - epg: "epg2"
+        contract: "default"
+        type: "consumer"
+      - epg: "epg2"
+        contract: "SQL"
+        type: "provider"
+      - epg: "epg2"
+        contract: "Cache"
+        type: "consumer"
+      - epg: "epg3"
+        contract: "default"
+        type: "consumer"
+      - epg: "epg3"
+        contract: "Cache"
+        type: "provider"
+
+  tasks:
+  - name: create tenant on ACI using aci_tenant module
+    cisco.aci.aci_tenant:
+      <<: *aci_login
+      tenant: '{{tenant.name}}'
+      state: '{{tenant.state}}'
+    delegate_to: localhost
+
+  - name: add a VRF to the tenant
+    cisco.aci.aci_vrf:
+      <<: *aci_login
+      tenant: '{{tenant.name}}'
+      descr: '{{tenant.vrf.descr}}'
+      vrf: '{{tenant.vrf.name}}'
+      policy_control_preference: '{{tenant.vrf.enforce}}'
+      state: '{{tenant.state}}'
+    delegate_to: localhost
+
+  - name: add a BD to the tenant
+    cisco.aci.aci_bd:
+      <<: *aci_login
+      tenant: '{{tenant.name}}'
+      vrf: '{{tenant.vrf.name}}'
+      bd: '{{item.name}}'
+      state: '{{tenant.state}}'
+    loop: '{{tenant.vrf.bds}}'
+    delegate_to: localhost
+
+  - name: add a subnet to the BD
+    cisco.aci.aci_bd_subnet:
+      <<: *aci_login
+      tenant: '{{tenant.name}}'
+      bd: '{{item.name}}'
+      gateway: '{{item.gw}}'
+      mask: '{{item.mask}}'
+      scope: '{{item.scope}}'
+      state: '{{tenant.state}}'
+    loop: '{{tenant.vrf.bds}}'
+    delegate_to: localhost
+
+  - name: bind internet l3out to each BD
+    cisco.aci.aci_bd_to_l3out:
+      <<: *aci_login
+      bd: '{{item.name}}'
+      l3out: '{{l3out.name}}'
+      state: '{{tenant.state}}'
+      tenant: '{{tenant.name}}'
+    loop: '{{tenant.vrf.bds}}'
+    delegate_to: localhost
+
+  - name: add an App Profile to the tenant
+    cisco.aci.aci_ap:
+      <<: *aci_login
+      tenant: '{{tenant.name}}'
+      ap: '{{tenant.ap.name}}'
+    delegate_to: localhost
+
+  - name: add EPGs to App Profile
+    cisco.aci.aci_epg:
+      <<: *aci_login
+      tenant: "{{tenant.name}}"
+      ap: "{{item.ap}}"
+      epg: "{{item.name}}"
+      bd: "{{item.bd}}"
+    loop: '{{tenant.epgs}}'
+    delegate_to: localhost
+
+  - name: bind EPGs to VMM domain
+    cisco.aci.aci_epg_to_domain:
+      <<: *aci_login
+      tenant: '{{tenant.name}}'
+      ap: '{{item.ap}}'
+      epg: '{{item.name}}'
+      domain: '{{item.domain}}'
+      domain_type: vmm
+      vm_provider: vmware
+      state: '{{tenant.state}}'
+    loop: '{{tenant.epgs}}'
+    delegate_to: localhost
+
+  - name: create filters
+    cisco.aci.aci_filter:
+      <<: *aci_login
+      tenant: "{{ tenant.name }}"
+      filter: "{{ item.filter }}"
+    loop: "{{ filters }}"
+    delegate_to: localhost
+
+  - name: create filter entry
+    cisco.aci.aci_filter_entry:
+      <<: *aci_login
+      tenant: "{{ tenant.name }}"
+      filter: "{{ item.filter }}"
+      entry: "{{ item.entry }}"
+      ether_type: ip
+      ip_protocol: "{{ item.protocol }}"
+      dst_port: "{{ item.port }}"
+    loop: "{{ filters }}"
+    delegate_to: localhost
+
+  - name: create contract
+    cisco.aci.aci_contract:
+      <<: *aci_login
+      tenant: "{{ tenant.name }}"
+      contract: "{{ item.contract }}"
+      scope: "context"
+    loop: "{{ contracts }}"
+    delegate_to: localhost
+
+  - name: create contract subject
+    cisco.aci.aci_contract_subject:
+      <<: *aci_login
+      tenant: "{{ tenant.name }}"
+      contract: "{{ item.contract }}"
+      subject: "{{ item.subject }}"
+    loop: "{{ contracts }}"
+    delegate_to: localhost
+
+  - name: subject to filter bindings
+    cisco.aci.aci_contract_subject_to_filter:
+      <<: *aci_login
+      tenant: "{{ tenant.name }}"
+      contract: "{{ item.contract }}"
+      subject: "{{ item.subject }}"
+      filter: "{{ item.filter }}"
+    loop: "{{ contracts }}"
+    delegate_to: localhost
+
+  - name: bind epg to contract
+    cisco.aci.aci_epg_to_contract:
+      <<: *aci_login
+      tenant: "{{ tenant.name }}"
+      ap: "{{ tenant.ap.name }}"
+      epg: "{{ item.epg }}"
+      contract: "{{ item.contract }}"
+      contract_type: "{{ item.type }}"
+    loop: "{{ epg_contracts }}"
+    delegate_to: localhost
+
+  - name: Add Static Binding for EPG
+    cisco.aci.aci_static_binding_to_epg:
+      <<: *aci_login
+      tenant: "{{tenant.name}}"
+      ap: "{{ tenant.ap.name }}"
+      epg: "{{ item.epg }}"
+      encap_id: "{{ item.encap }}"
+      deploy_immediacy: "lazy"
+      interface_mode: "{{ item.ifmode }}"
+      interface_type: "{{ item.iftype }}"
+      pod_id: "{{ item.pod }}"
+      leafs: "{{ item.leaf }}"
+      interface: "{{ item.if }}"
+      state: present
+    loop:
+      - { epg: "epg1", encap: "100", ifmode: "trunk", iftype: "switch_port", pod: "1", leaf: "101", if: "1/12" }
+      - { epg: "epg1", encap: "200", ifmode: "trunk", iftype: "vpc", pod: "1", leaf: "101-102", if: "external_vpc_N9K" }
+
+  - name: provide internet access from extEpg with default contract
+    cisco.aci.aci_rest:
+      <<: *aci_login
+      path: /api/node/mo/uni/tn-common/out-internet/instP-'{{l3out.name}}'.json
+      content:
+        {"fvRsProv":{"attributes":{"tnVzBrCPName":"default","status":"created"},"children":[]}}
+    delegate_to: localhost
+    
