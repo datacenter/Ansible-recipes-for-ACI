@@ -19,7 +19,7 @@ Inside each directory you'll find a minimal inventory file with one APIC host, i
 
 ## _Optimizations_
 
-To keep the code as simple and light as possible, most playbooks here use regular username/password authencation.
+To keep the code as simple and light as possible, most playbooks here use regular username/password authentication.
 If you'd like to optimize the speed of execution and augment security, consider using [signature-based transactions](https://docs.ansible.com/ansible/latest/scenario_guides/guide_aci.html)
 
 ## _Disclaimer and license_
