@@ -1,0 +1,7 @@
+tenant,ap,epg,encap_id,deploy,int_mode,int_type,pod_id,leaf,int
+Demo,ap1,epg1,500,immediate,trunk,switch_port,1,101,1/24
+Demo,ap1,epg1,501,immediate,trunk,switch_port,1,101,1/25
+Demo,ap1,epg1,502,immediate,trunk,switch_port,1,101,1/26
+Demo,ap1,epg1,503,immediate,trunk,switch_port,1,101,1/27
+Demo,ap1,epg1,504,immediate,trunk,switch_port,1,101,1/28
+Demo,ap1,epg1,505,immediate,trunk,switch_port,1,101,1/29

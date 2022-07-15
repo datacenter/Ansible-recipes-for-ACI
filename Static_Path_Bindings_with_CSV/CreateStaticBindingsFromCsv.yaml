@@ -1,0 +1,36 @@
+---
+- name: Deploy static ports on leafs as defined in a CSV file
+  hosts: aci
+  connection: local
+  gather_facts: false
+  vars:
+    aci_creds: &aci_login
+      hostname: '{{ inventory_hostname }}'
+      username: ansible
+      password: cisco
+      use_proxy: no
+      use_ssl: yes
+      validate_certs: no
+
+  tasks:
+  - name: Load CSV file with static bindings info
+    community.general.read_csv:
+      path: ports.csv
+    register: ports
+
+  - name: deploy static path bindings into a given EPG
+    cisco.aci.aci_static_binding_to_epg:
+      <<: *aci_login
+      tenant: '{{ item.tenant }}'
+      ap: '{{ item.ap }}'
+      epg: '{{ item.epg }}'
+      encap_id: '{{ item.encap_id }}'
+      deploy_immediacy: '{{ item.deploy }}'
+      interface_mode: '{{ item.int_mode }}'
+      interface_type: '{{ item.int_type }}'
+      pod_id: '{{ item.pod_id }}'
+      leafs: '{{ item.leaf }}'
+      interface: '{{ item.int }}'
+      validate_certs: no
+      state: present
+    loop: '{{ ports.list }}'
