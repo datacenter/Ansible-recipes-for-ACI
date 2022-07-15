@@ -1,0 +1,167 @@
+## validation
+PLAY [Complete interface configuration] *******************************************************************************************************************************************************************
+
+TASK [Create Leaf Profiles] *******************************************************************************************************************************************************************************
+Friday 15 July 2022  15:44:29 +0200 (0:00:00.013)       0:00:00.013 ***********
+ok: [10.48.168.3] => (item={'name': 'leaf101_profile', 'desc': 'Profile for Leaf101'})
+ok: [10.48.168.3] => (item={'name': 'leaf102_profile', 'desc': 'Profile for Leaf102'})
+ok: [10.48.168.3] => (item={'name': 'leaf101-102_profile', 'desc': 'Profile for Leaf101-102'})
+
+TASK [Add Leaf Selectors to Leaf Profiles] ****************************************************************************************************************************************************************
+Friday 15 July 2022  15:44:34 +0200 (0:00:05.179)       0:00:05.192 ***********
+ok: [10.48.168.3] => (item={'name': 'leaf101_profile', 'leaf': 'leaf101', 'node_blk': 'node_blk_101', 'from': '101', 'to': '101'})
+ok: [10.48.168.3] => (item={'name': 'leaf102_profile', 'leaf': 'leaf102', 'node_blk': 'node_blk_102', 'from': '102', 'to': '102'})
+ok: [10.48.168.3] => (item={'name': 'leaf101-102_profile', 'leaf': 'leaf101', 'node_blk': 'node_blk_101', 'from': '101', 'to': '101'})
+ok: [10.48.168.3] => (item={'name': 'leaf101-102_profile', 'leaf': 'leaf102', 'node_blk': 'node_blk_102', 'from': '102', 'to': '102'})
+
+TASK [Add Leaf Interface Profiles] ************************************************************************************************************************************************************************
+Friday 15 July 2022  15:44:39 +0200 (0:00:04.194)       0:00:09.387 ***********
+ok: [10.48.168.3] => (item={'name': 'leaf101_interfaces'})
+ok: [10.48.168.3] => (item={'name': 'leaf102_interfaces'})
+ok: [10.48.168.3] => (item={'name': 'leaf101-102_interfaces'})
+
+TASK [Associate Leaf Interface Profile to Switch Profile] *************************************************************************************************************************************************
+Friday 15 July 2022  15:44:42 +0200 (0:00:03.229)       0:00:12.617 ***********
+ok: [10.48.168.3] => (item={'leaf': 'leaf101_profile', 'interface': 'leaf101_interfaces'})
+ok: [10.48.168.3] => (item={'leaf': 'leaf102_profile', 'interface': 'leaf102_interfaces'})
+ok: [10.48.168.3] => (item={'leaf': 'leaf101-102_profile', 'interface': 'leaf101-102_interfaces'})
+
+TASK [Create Leaf Access Port Policy Group] ***************************************************************************************************************************************************************
+Friday 15 July 2022  15:44:45 +0200 (0:00:03.414)       0:00:16.031 ***********
+ok: [10.48.168.3] => (item={'name': 'K8s_master_001', 'lldp': 'lldp_enabled', 'aep': 'kubernetes_aaep', 'desc': 'K8s master node 001'})
+ok: [10.48.168.3] => (item={'name': 'bare_metal_001', 'lldp': 'lldp_enabled', 'aep': 'bare_metal_aaep', 'desc': 'Bare metal server 001'})
+ok: [10.48.168.3] => (item={'name': 'vmm_server_001', 'lldp': 'lldp_enabled', 'aep': 'vmm_one_aaep', 'desc': 'VMM server 001'})
+ok: [10.48.168.3] => (item={'name': 'vmm_server_002', 'lldp': 'lldp_enabled', 'aep': 'vmm_two_aaep', 'desc': 'VMM server 002'})
+
+TASK [Create Leaf VPC Port Policy Group] ******************************************************************************************************************************************************************
+Friday 15 July 2022  15:44:49 +0200 (0:00:04.097)       0:00:20.129 ***********
+ok: [10.48.168.3] => (item={'name': 'VPC_to_external_N9K', 'lldp': 'lldp_enabled', 'portchannel': 'lacp_active', 'aep': 'external_n9k_aaep', 'desc': 'External N9K VPC to legacy env'})
+
+TASK [Associate Interface Selector to Interface Leaf Profile] *********************************************************************************************************************************************
+Friday 15 July 2022  15:44:50 +0200 (0:00:01.017)       0:00:21.147 ***********
+ok: [10.48.168.3] => (item={'ifProf': 'leaf101_interfaces', 'ifSel': 'eth_1_12', 'iftype': 'switch_port', 'lfblk': '1', 'from': '12', 'end': '12', 'polGrp': 'K8s_master_001'})
+ok: [10.48.168.3] => (item={'ifProf': 'leaf101_interfaces', 'ifSel': 'eth_1_13', 'iftype': 'switch_port', 'lfblk': '1', 'from': '13', 'end': '13', 'polGrp': 'bare_metal_001'})
+ok: [10.48.168.3] => (item={'ifProf': 'leaf102_interfaces', 'ifSel': 'eth_1_12', 'iftype': 'switch_port', 'lfblk': '1', 'from': '12', 'end': '12', 'polGrp': 'vmm_server_001'})
+ok: [10.48.168.3] => (item={'ifProf': 'leaf102_interfaces', 'ifSel': 'eth_1_13', 'iftype': 'switch_port', 'lfblk': '1', 'from': '13', 'end': '13', 'polGrp': 'vmm_server_002'})
+ok: [10.48.168.3] => (item={'ifProf': 'leaf101-102_interfaces', 'ifSel': 'eth_1_24', 'iftype': 'vpc', 'lfblk': '1', 'from': '24', 'end': '24', 'polGrp': 'VPC_to_external_N9K'})
+
+TASK [Create Interface Policy for Link Level Options with aci_rest] ***************************************************************************************************************************************
+Friday 15 July 2022  15:44:55 +0200 (0:00:05.072)       0:00:26.220 ***********
+ok: [10.48.168.3] => (item={'name': 'link-100M', 'descr': '100Mbps', 'speed': '100M', 'linkDebounce': '100', 'fec': 'inherit', 'autoneg': 'on'})
+ok: [10.48.168.3] => (item={'name': 'link-1G', 'descr': '1Gbps', 'speed': '1G', 'linkDebounce': '100', 'fec': 'inherit', 'autoneg': 'on'})
+ok: [10.48.168.3] => (item={'name': 'link-10G', 'descr': '10Gbps', 'speed': '10G', 'linkDebounce': '100', 'fec': 'inherit', 'autoneg': 'on'})
+ok: [10.48.168.3] => (item={'name': 'link-25G', 'descr': '25Gbps - use with short-length passive cables', 'speed': '25G', 'linkDebounce': '100', 'fec': 'inherit', 'autoneg': 'on'})
+ok: [10.48.168.3] => (item={'name': 'link-25G-FEC-CL74-FC', 'descr': '25Gbps - use with 3-meter passive cable and 1 to 10-meter active cables', 'speed': '25G', 'linkDebounce': '100', 'fec': 'cl74-fc-fec', 'autoneg': 'on'})
+ok: [10.48.168.3] => (item={'name': 'link-25G-FEC-CL91-RC', 'descr': '25Gbps - use with 5-meter passive cable and 100-meter SPF-25G-SR or SPF-25G-LR', 'speed': '25G', 'linkDebounce': '100', 'fec': 'cl91-rs-fec', 'autoneg': 'on'})
+ok: [10.48.168.3] => (item={'name': 'link-40G', 'descr': '40Gbps', 'speed': '40G', 'linkDebounce': '100', 'fec': 'inherit', 'autoneg': 'on'})
+ok: [10.48.168.3] => (item={'name': 'link-100G', 'descr': '100Gbps', 'speed': '100G', 'linkDebounce': '100', 'fec': 'inherit', 'autoneg': 'on'})
+
+TASK [Create Interface Policy for LLDP] *******************************************************************************************************************************************************************
+Friday 15 July 2022  15:45:02 +0200 (0:00:06.544)       0:00:32.764 ***********
+ok: [10.48.168.3] => (item={'name': 'lldp_enabled', 'desc': 'lldp TX and RX on', 'receive': 'yes', 'transmit': 'yes'})
+ok: [10.48.168.3] => (item={'name': 'lldp_disabled', 'desc': 'lldp TX and RX off', 'receive': 'no', 'transmit': 'no'})
+
+TASK [Create Interface Policy for CDP] ********************************************************************************************************************************************************************
+Friday 15 July 2022  15:45:04 +0200 (0:00:02.151)       0:00:34.916 ***********
+ok: [10.48.168.3] => (item={'name': 'cdp_disabled', 'admin_state': 'off'})
+ok: [10.48.168.3] => (item={'name': 'cdp_enabled', 'admin_state': 'on'})
+
+TASK [Create Interface Policy for MCP] ********************************************************************************************************************************************************************
+Friday 15 July 2022  15:45:06 +0200 (0:00:02.139)       0:00:37.055 ***********
+ok: [10.48.168.3] => (item={'name': 'mcp_enabled', 'desc': 'mcp enabled', 'state': 'yes'})
+ok: [10.48.168.3] => (item={'name': 'mcp_disabled', 'desc': 'mcp disabled', 'state': 'no'})
+
+TASK [Create Interface Policy for LACP] *******************************************************************************************************************************************************************
+Friday 15 July 2022  15:45:09 +0200 (0:00:03.276)       0:00:40.332 ***********
+ok: [10.48.168.3] => (item={'name': 'lacp_active', 'min': '1', 'max': '16', 'mode': 'active'})
+
+TASK [Create Vlan Pools] **********************************************************************************************************************************************************************************
+Friday 15 July 2022  15:45:11 +0200 (0:00:01.147)       0:00:41.480 ***********
+ok: [10.48.168.3] => (item={'pool': 'bare_metal_pool', 'allocation': 'static', 'desc': 'pool for bare-metal servers'})
+ok: [10.48.168.3] => (item={'pool': 'kubernetes_pool', 'allocation': 'static', 'desc': 'pool for K8s nodes'})
+ok: [10.48.168.3] => (item={'pool': 'vmm_pool_one', 'allocation': 'dynamic', 'desc': 'pool one for hypervisors'})
+ok: [10.48.168.3] => (item={'pool': 'vmm_pool_two', 'allocation': 'dynamic', 'desc': 'pool two for hypervisors'})
+ok: [10.48.168.3] => (item={'pool': 'internet_pool', 'allocation': 'static', 'desc': 'internet access pool'})
+ok: [10.48.168.3] => (item={'pool': 'external_n9k_pool', 'allocation': 'static', 'desc': 'external N9K pool'})
+
+TASK [Add Vlan encap blocks to Vlan Pools] ****************************************************************************************************************************************************************
+Friday 15 July 2022  15:45:17 +0200 (0:00:06.075)       0:00:47.555 ***********
+ok: [10.48.168.3] => (item={'pool': 'bare_metal_pool', 'start': '100', 'end': '119', 'allocation': 'static'})
+ok: [10.48.168.3] => (item={'pool': 'kubernetes_pool', 'start': '120', 'end': '139', 'allocation': 'static'})
+ok: [10.48.168.3] => (item={'pool': 'vmm_pool_one', 'start': '140', 'end': '159', 'allocation': 'dynamic'})
+ok: [10.48.168.3] => (item={'pool': 'vmm_pool_two', 'start': '160', 'end': '179', 'allocation': 'dynamic'})
+ok: [10.48.168.3] => (item={'pool': 'external_n9k_pool', 'start': '180', 'end': '199', 'allocation': 'static'})
+ok: [10.48.168.3] => (item={'pool': 'internet_pool', 'start': '555', 'end': '555', 'allocation': 'static'})
+
+TASK [Create non-VMM domains] *****************************************************************************************************************************************************************************
+Friday 15 July 2022  15:45:23 +0200 (0:00:06.088)       0:00:53.643 ***********
+ok: [10.48.168.3] => (item={'dom': 'bare_metal_domain', 'type': 'phys'})
+ok: [10.48.168.3] => (item={'dom': 'kubernetes_domain', 'type': 'phys'})
+ok: [10.48.168.3] => (item={'dom': 'external_n9k_domain', 'type': 'phys'})
+ok: [10.48.168.3] => (item={'dom': 'internet_domain', 'type': 'l3dom'})
+
+TASK [Create VMM Domains] *********************************************************************************************************************************************************************************
+Friday 15 July 2022  15:45:27 +0200 (0:00:04.100)       0:00:57.744 ***********
+ok: [10.48.168.3] => (item={'dom': 'vmm_domain_one', 'type': 'vmm', 'provider': 'vmware'})
+
+  1 ## validation
+ok: [10.48.168.3] => (item={'dom': 'vmm_domain_two', 'type': 'vmm', 'provider': 'vmware'})
+
+TASK [Bind non-VMM Domains to Vlan Pools] *****************************************************************************************************************************************************************
+Friday 15 July 2022  15:45:29 +0200 (0:00:02.001)       0:00:59.745 ***********
+ok: [10.48.168.3] => (item={'dom': 'bare_metal_domain', 'type': 'phys', 'pool': 'bare_metal_pool', 'allocation': 'static'})
+ok: [10.48.168.3] => (item={'dom': 'kubernetes_domain', 'type': 'phys', 'pool': 'kubernetes_pool', 'allocation': 'static'})
+ok: [10.48.168.3] => (item={'dom': 'external_n9k_domain', 'type': 'phys', 'pool': 'external_n9K_pool', 'allocation': 'static'})
+ok: [10.48.168.3] => (item={'dom': 'internet_domain', 'type': 'l3dom', 'pool': 'internet_pool', 'allocation': 'static'})
+
+TASK [Bind VMM Domains to Vlan Pools] *********************************************************************************************************************************************************************
+Friday 15 July 2022  15:45:33 +0200 (0:00:04.098)       0:01:03.844 ***********
+ok: [10.48.168.3] => (item={'dom': 'vmm_domain_one', 'type': 'vmm', 'pool': 'vmm_pool_one', 'allocation': 'dynamic', 'provider': 'vmware'})
+ok: [10.48.168.3] => (item={'dom': 'vmm_domain_two', 'type': 'vmm', 'pool': 'vmm_pool_two', 'allocation': 'dynamic', 'provider': 'vmware'})
+
+TASK [Create AAEPs] ***************************************************************************************************************************************************************************************
+Friday 15 July 2022  15:45:35 +0200 (0:00:01.978)       0:01:05.823 ***********
+ok: [10.48.168.3] => (item={'name': 'bare_metal_aaep', 'desc': 'non K8s bare-metal servers'})
+ok: [10.48.168.3] => (item={'name': 'kubernetes_aaep', 'desc': 'K8s bare-metal servers'})
+ok: [10.48.168.3] => (item={'name': 'external_n9k_aaep', 'desc': 'external N9K routers'})
+changed: [10.48.168.3] => (item={'name': 'internet_access_aaep', 'desc': 'external N9K routers'})
+ok: [10.48.168.3] => (item={'name': 'vmm_one_aaep', 'desc': 'VMM domain one AAEP'})
+ok: [10.48.168.3] => (item={'name': 'vmm_two_aaep', 'desc': 'VMM domain two AAEP'})
+
+TASK [Bind AAEPs to non-VMM Domains] **********************************************************************************************************************************************************************
+Friday 15 July 2022  15:45:41 +0200 (0:00:06.409)       0:01:12.233 ***********
+ok: [10.48.168.3] => (item={'name': 'bare_metal_aaep', 'dom': 'bare_metal_domain', 'type': 'phys'})
+ok: [10.48.168.3] => (item={'name': 'kubernetes_aaep', 'dom': 'kubernetes_domain', 'type': 'phys'})
+ok: [10.48.168.3] => (item={'name': 'external_n9k_aaep', 'dom': 'external_n9k_domain', 'type': 'phys'})
+changed: [10.48.168.3] => (item={'name': 'internet_access_aaep', 'dom': 'internet_domain', 'type': 'l3dom'})
+
+TASK [Binding AEP to VMM Domains] *************************************************************************************************************************************************************************
+Friday 15 July 2022  15:45:47 +0200 (0:00:05.342)       0:01:17.575 ***********
+changed: [10.48.168.3] => (item={'name': 'vmm_one_aaep', 'dom': 'vmm_domain_one', 'type': 'vmm', 'provider': 'vmware'})
+changed: [10.48.168.3] => (item={'name': 'vmm_two_aaep', 'dom': 'vmm_domain_two', 'type': 'vmm', 'provider': 'vmware'})
+
+PLAY RECAP ************************************************************************************************************************************************************************************************
+10.48.168.3                : ok=21   changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+
+Friday 15 July 2022  15:45:49 +0200 (0:00:02.423)       0:01:19.999 ***********
+===============================================================================
+Create Interface Policy for Link Level Options with aci_rest --------------------------------------------------------------------------------------------------------------------------------------- 6.54s
+Create AAEPs --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 6.41s
+Add Vlan encap blocks to Vlan Pools ---------------------------------------------------------------------------------------------------------------------------------------------------------------- 6.09s
+Create Vlan Pools ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 6.08s
+Bind AAEPs to non-VMM Domains ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- 5.34s
+Create Leaf Profiles ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 5.18s
+Associate Interface Selector to Interface Leaf Profile --------------------------------------------------------------------------------------------------------------------------------------------- 5.07s
+Add Leaf Selectors to Leaf Profiles ---------------------------------------------------------------------------------------------------------------------------------------------------------------- 4.19s
+Create non-VMM domains ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 4.10s
+Bind non-VMM Domains to Vlan Pools ----------------------------------------------------------------------------------------------------------------------------------------------------------------- 4.10s
+Create Leaf Access Port Policy Group --------------------------------------------------------------------------------------------------------------------------------------------------------------- 4.10s
+Associate Leaf Interface Profile to Switch Profile ------------------------------------------------------------------------------------------------------------------------------------------------- 3.41s
+Create Interface Policy for MCP -------------------------------------------------------------------------------------------------------------------------------------------------------------------- 3.28s
+Add Leaf Interface Profiles ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ 3.23s
+Binding AEP to VMM Domains ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 2.42s
+Create Interface Policy for LLDP ------------------------------------------------------------------------------------------------------------------------------------------------------------------- 2.15s
+Create Interface Policy for CDP -------------------------------------------------------------------------------------------------------------------------------------------------------------------- 2.14s
+Create VMM Domains --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 2.00s
+Bind VMM Domains to Vlan Pools --------------------------------------------------------------------------------------------------------------------------------------------------------------------- 1.98s
+Create Interface Policy for LACP ------------------------------------------------------------------------------------------------------------------------------------------------------------------- 1.15s

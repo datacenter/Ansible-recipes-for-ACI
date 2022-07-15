@@ -1,0 +1,358 @@
+---
+- name: Complete interface configuration
+  hosts: aci
+  connection: local
+  gather_facts: False
+  vars:
+    aci_creds: &aci_login
+      hostname: '{{inventory_hostname}}'
+      use_proxy: no
+      use_ssl: yes
+      username: ansible
+      password: cisco
+      validate_certs: no
+    desired_state: 'present'
+
+  tasks:
+  ################################################
+  #####     NODE AND INTERFACE PROFILES       ####
+  ################################################
+    - name: Create Leaf Profiles
+      aci_switch_policy_leaf_profile:
+        <<: *aci_login
+        leaf_profile: "{{ item.name }}"
+        description: "{{ item.desc }}"
+        state: "{{ desired_state }}"
+      loop:
+        - { name: "leaf101_profile", desc: "Profile for Leaf101" }
+        - { name: "leaf102_profile", desc: "Profile for Leaf102" }
+        - { name: "leaf101-102_profile", desc: "Profile for Leaf101-102" }
+      loop_control:
+        pause: 1
+      tags:
+      - switch-profiles
+
+    - name: Add Leaf Selectors to Leaf Profiles
+      aci_switch_leaf_selector:
+        <<: *aci_login
+        leaf_profile: "{{ item.name }}"
+        leaf: "{{ item.leaf }}"
+        leaf_node_blk: "{{ item.node_blk }}"
+        from: "{{ item.from }}"
+        to: "{{ item.to }}"
+        state: "{{ desired_state }}"
+      loop:
+        - { name: "leaf101_profile", leaf: "leaf101", node_blk: "node_blk_101", from: "101", to: "101"}
+        - { name: "leaf102_profile", leaf: "leaf102", node_blk: "node_blk_102", from: "102", to: "102"}
+        - { name: "leaf101-102_profile", leaf: "leaf101", node_blk: "node_blk_101", from: "101", to: "101"}
+        - { name: "leaf101-102_profile", leaf: "leaf102", node_blk: "node_blk_102", from: "102", to: "102"}
+      tags:
+      - switch-profiles
+      - switch-profiles-leaf-selectors
+
+    - name: Add Leaf Interface Profiles
+      aci_interface_policy_leaf_profile:
+        <<: *aci_login
+        leaf_interface_profile: "{{ item.name }}"
+        description: "create with ansible"
+        state: "{{ desired_state }}"
+      loop:
+        - { name: "leaf101_interfaces"}
+        - { name: "leaf102_interfaces"}
+        - { name: "leaf101-102_interfaces"}
+      tags:
+      - interface_profiles
+
+    - name: Associate Leaf Interface Profile to Switch Profile
+      aci_interface_selector_to_switch_policy_leaf_profile:
+        <<: *aci_login
+        leaf_profile: "{{ item.leaf }}"
+        interface_selector: "{{ item.interface }}"
+        state: "{{ desired_state }}"
+      loop:
+        - { leaf: "leaf101_profile", interface: "leaf101_interfaces"}
+        - { leaf: "leaf102_profile", interface: "leaf102_interfaces"}
+        - { leaf: "leaf101-102_profile", interface: "leaf101-102_interfaces"}
+      tags:
+      - interface_profiles
+
+    - name: Create Leaf Access Port Policy Group
+      aci_interface_policy_leaf_policy_group:
+        <<: *aci_login
+        lag_type: leaf
+        policy_group: "{{ item.name}}"
+        lldp_policy: "{{ item.lldp }}"
+        aep: "{{ item.aep }}"
+        description: "{{ item.desc }}"
+        state: "{{ desired_state }}"
+      loop:
+        - { name: "K8s_master_001", lldp: "lldp_enabled", aep: "kubernetes_aaep", desc: "K8s master node 001"}
+        - { name: "bare_metal_001", lldp: "lldp_enabled", aep: "bare_metal_aaep", desc: "Bare metal server 001"}
+        - { name: "vmm_server_001", lldp: "lldp_enabled", aep: "vmm_one_aaep", desc: "VMM server 001"}
+        - { name: "vmm_server_002", lldp: "lldp_enabled", aep: "vmm_two_aaep", desc: "VMM server 002"}
+      tags:
+      - interface_policy_group
+
+    - name: Create Leaf VPC Port Policy Group
+      aci_interface_policy_leaf_policy_group:
+        <<: *aci_login
+        lag_type: node
+        policy_group: "{{ item.name}}"
+        lldp_policy: "{{ item.lldp }}"
+        port_channel_policy: "{{ item.portchannel}}"
+        aep: "{{ item.aep }}"
+        description: "{{ item.desc }}"
+        state: "{{ desired_state }}"
+      loop:
+        - { name: "VPC_to_external_N9K", lldp: "lldp_enabled", portchannel: "lacp_active", aep: "external_n9k_aaep", desc: "External N9K VPC to legacy env"}
+      tags:
+      - interface_policy_group
+
+    - name: Associate Interface Selector to Interface Leaf Profile
+      aci_access_port_to_interface_policy_leaf_profile:
+        <<: *aci_login
+        leaf_interface_profile: "{{ item.ifProf}}"
+        access_port_selector: "{{ item.ifSel}}"
+        interface_type: "{{ item.iftype}}"
+        leaf_port_blk: "{{ item.lfblk }}"
+        from_port: "{{ item.from }}"
+        to_port: "{{ item.end }}"
+        policy_group: "{{ item.polGrp}}"
+        description: ""
+        state: "{{ desired_state }}"
+      loop:
+              - { ifProf: "leaf101_interfaces", ifSel: "eth_1_12", iftype: "switch_port", lfblk: "1", from: "12", end: "12", polGrp: "K8s_master_001"}
+              - { ifProf: "leaf101_interfaces", ifSel: "eth_1_13", iftype: "switch_port", lfblk: "1", from: "13", end: "13", polGrp: "bare_metal_001"}
+              - { ifProf: "leaf102_interfaces", ifSel: "eth_1_12", iftype: "switch_port", lfblk: "1", from: "12", end: "12", polGrp: "vmm_server_001"}
+              - { ifProf: "leaf102_interfaces", ifSel: "eth_1_13", iftype: "switch_port", lfblk: "1", from: "13", end: "13", polGrp: "vmm_server_002"}
+              - { ifProf: "leaf101-102_interfaces", ifSel: "eth_1_24", iftype: "vpc", lfblk: "1", from: "24", end: "24", polGrp: "VPC_to_external_N9K"}
+      tags:
+      - interface_policy_group
+
+  ################################################
+  #####           INTERFACE POLICIES          ####
+  ################################################
+    - name: Create Interface Policy for Link Level Options with aci_rest
+      aci_rest:
+        <<: *aci_login
+        method: post
+        path: /api/mo/uni.xml
+        content: '<infraInfra><fabricHIfPol name="{{ item.name }}" descr="{{ item.descr }}" speed="{{ item.speed }}" linkDebounce="{{ item.linkDebounce}}" fecMode="{{item.fec}}" autoNeg="{{ item.autoneg }}"/></infraInfra>'
+      loop:
+        - { name: "link-100M", descr: "100Mbps", speed: "100M", linkDebounce: "100", fec: "inherit", autoneg: "on" }
+        - { name: "link-1G", descr: "1Gbps", speed: "1G", linkDebounce: "100", fec: "inherit", autoneg: "on" }
+        - { name: "link-10G", descr: "10Gbps", speed: "10G", linkDebounce: "100", fec: "inherit", autoneg: "on" }
+        - { name: "link-25G", descr: "25Gbps - use with short-length passive cables", speed: "25G", linkDebounce: "100", fec: "inherit", autoneg: "on" }
+        - { name: "link-25G-FEC-CL74-FC", descr: "25Gbps - use with 3-meter passive cable and 1 to 10-meter active cables", speed: "25G", linkDebounce: "100", fec: "cl74-fc-fec", autoneg: "on" }
+        - { name: "link-25G-FEC-CL91-RC", descr: "25Gbps - use with 5-meter passive cable and 100-meter SPF-25G-SR or SPF-25G-LR", speed: "25G", linkDebounce: "100", fec: "cl91-rs-fec", autoneg: "on" }
+        - { name: "link-40G", descr: "40Gbps", speed: "40G", linkDebounce: "100", fec: "inherit", autoneg: "on" }
+        - { name: "link-100G", descr: "100Gbps", speed: "100G", linkDebounce: "100", fec: "inherit", autoneg: "on" }
+      tags:
+      - interface_policies
+      - link_level
+
+    - name: Create Interface Policy for LLDP
+      aci_interface_policy_lldp:
+        <<: *aci_login
+        lldp_policy: "{{ item.name }}"
+        description: "{{ item.desc }}"
+        receive_state: "{{ item.receive }}"
+        transmit_state: "{{ item.transmit }}"
+        state: "{{ desired_state }}"
+      loop:
+        - { name: "lldp_enabled", desc: "lldp TX and RX on", receive: "yes", transmit: "yes" }
+        - { name: "lldp_disabled", desc: "lldp TX and RX off", receive: "no", transmit: "no" }
+      tags:
+      - interface_policies
+      - lldp
+
+    - name: Create Interface Policy for CDP
+      cisco.aci.aci_interface_policy_cdp:
+        <<: *aci_login
+        name: "{{ item.name }}"
+        admin_state: "{{ item.admin_state }}"
+        state: "{{ desired_state }}"
+      loop:
+        - { name: "cdp_disabled", admin_state: "off"}
+        - { name: "cdp_enabled", admin_state: "on"}
+      tags:
+      - interface_policies
+      - cdp
+
+    - name: Create Interface Policy for MCP
+      aci_interface_policy_mcp:
+        <<: *aci_login
+        mcp: "{{ item.name }}"
+        description: "{{ item.desc }}"
+        admin_state: "{{ item.state }}"
+        state: "{{ desired_state }}"
+      loop:
+        - { name: "mcp_enabled", desc: "mcp enabled", state: "yes" }
+        - { name: "mcp_disabled", desc: "mcp disabled", state: "no" }
+      tags:
+      - interface_policies
+      - mcp
+
+    - name: Create Interface Policy for LACP
+      aci_interface_policy_port_channel:
+        <<: *aci_login
+        port_channel: "{{ item.name }}"
+        description: "created with ansible"
+        min_links: "{{ item.min }}"
+        max_links: "{{ item.max }}"
+        mode: "{{ item.mode }}"
+        state: "{{ desired_state }}"
+      loop:
+        - { name: "lacp_active", min: "1", max: "16", mode: "active"}
+      tags:
+        - interface_policies
+        - lacp
+
+  ################################################
+  #####              VLAN POOLS               ####
+  ################################################
+    - name: Create Vlan Pools
+      aci_vlan_pool:
+        <<: *aci_login
+        pool: "{{ item.pool }}"
+        pool_allocation_mode: "{{ item.allocation }}"
+        description: "{{ item.desc }}"
+        state: "{{ desired_state }}"
+      loop:
+        - { pool: "bare_metal_pool", allocation: "static", desc: "pool for bare-metal servers" }
+        - { pool: "kubernetes_pool", allocation: "static", desc: "pool for K8s nodes" }
+        - { pool: "vmm_pool_one", allocation: "dynamic", desc: "pool one for hypervisors" }
+        - { pool: "vmm_pool_two", allocation: "dynamic", desc: "pool two for hypervisors" }
+        - { pool: "internet_pool", allocation: "static", desc: "internet access pool" }
+        - { pool: "external_n9k_pool", allocation: "static", desc: "external N9K pool" }
+      tags:
+      - vlan_pools
+
+    - name: Add Vlan encap blocks to Vlan Pools
+      aci_vlan_pool_encap_block:
+        <<: *aci_login
+        pool: "{{ item.pool }}"
+        pool_allocation_mode: "{{ item.allocation }}"
+        block_name: "blockname_{{item.start}}_{{item.end}}"
+        block_start: "{{ item.start }}"
+        block_end: "{{ item.end }}"
+        state: "{{ desired_state }}"
+      loop:
+        - { pool: "bare_metal_pool", start: "100", end: "119", allocation: "static" }
+        - { pool: "kubernetes_pool", start: "120", end: "139", allocation: "static" }
+        - { pool: "vmm_pool_one", start: "140", end: "159", allocation: "dynamic" }
+        - { pool: "vmm_pool_two", start: "160", end: "179", allocation: "dynamic" }
+        - { pool: "external_n9k_pool", start: "180", end: "199", allocation: "static" }
+        - { pool: "internet_pool", start: "555", end: "555", allocation: "static" }
+      tags:
+      - vlan_pools
+      - encap_blocks
+
+  ################################################
+  #####              DOMAINS                  ####
+  ################################################
+    - name: Create non-VMM domains
+      aci_domain:
+        <<: *aci_login
+        domain: "{{ item.dom }}"
+        domain_type: "{{ item.type }}"
+        state: "{{ desired_state }}"
+      loop:
+        - { dom: "bare_metal_domain", type: "phys"}
+        - { dom: "kubernetes_domain", type: "phys"}
+        - { dom: "external_n9k_domain", type: "phys"}
+        - { dom: "internet_domain", type: "l3dom"}
+      tags:
+      - physical_domains
+
+    - name: Create VMM Domains
+      aci_domain:
+        <<: *aci_login
+        domain: "{{ item.dom }}"
+        domain_type: "{{ item.type }}"
+        vm_provider: "{{ item.provider}}"
+        state: "{{ desired_state }}"
+      loop:
+        - { dom: "vmm_domain_one", type: "vmm", provider: "vmware"}
+        - { dom: "vmm_domain_two", type: "vmm", provider: "vmware"}
+      tags:
+      - vmm_domains
+
+    - name: Bind non-VMM Domains to Vlan Pools
+      aci_domain_to_vlan_pool:
+        <<: *aci_login
+        domain: "{{ item.dom }}"
+        domain_type: "{{ item.type }}"
+        pool: "{{ item.pool }}"
+        pool_allocation_mode: "{{ item.allocation}}"
+        state: "{{ desired_state }}"
+      loop:
+        - { dom: "bare_metal_domain", type: "phys", pool: "bare_metal_pool", allocation: "static"}
+        - { dom: "kubernetes_domain", type: "phys", pool: "kubernetes_pool", allocation: "static"}
+        - { dom: "external_n9k_domain", type: "phys", pool: "external_n9K_pool", allocation: "static"}
+        - { dom: "internet_domain", type: "l3dom", pool: "internet_pool", allocation: "static"}
+      tags:
+      - physical_domains
+
+    - name: Bind VMM Domains to Vlan Pools
+      aci_domain_to_vlan_pool:
+        <<: *aci_login
+        domain: "{{ item.dom }}"
+        domain_type: "{{ item.type }}"
+        pool: "{{ item.pool }}"
+        pool_allocation_mode: "{{ item.allocation}}"
+        vm_provider: "{{item.provider}}"
+        state: "{{ desired_state }}"
+      loop:
+        - { dom: "vmm_domain_one", type: "vmm", pool: "vmm_pool_one", allocation: "dynamic", provider: "vmware"}
+        - { dom: "vmm_domain_two", type: "vmm", pool: "vmm_pool_two", allocation: "dynamic", provider: "vmware"}
+      tags:
+      - vmm_domains
+
+  ################################################
+  #####                AAEP                   ####
+  ################################################
+    - name: Create AAEPs
+      aci_aep:
+        <<: *aci_login
+        aep: "{{ item.name }}"
+        description: " {{ item.desc }}"
+        state: "{{ desired_state }}"
+      loop:
+        - { name: "bare_metal_aaep", desc: "non K8s bare-metal servers" }
+        - { name: "kubernetes_aaep", desc: "K8s bare-metal servers" }
+        - { name: "external_n9k_aaep", desc: "external N9K routers" }
+        - { name: "internet_access_aaep", desc: "external N9K routers" }
+        - { name: "vmm_one_aaep", desc: "VMM domain one AAEP" }
+        - { name: "vmm_two_aaep", desc: "VMM domain two AAEP" }
+      tags:
+      - aaep
+
+    - name: Bind AAEPs to non-VMM Domains
+      aci_aep_to_domain:
+        <<: *aci_login
+        aep: "{{ item.name }}"
+        domain: "{{ item.dom}}"
+        domain_type: "{{ item.type}}"
+        state: "{{ desired_state }}"
+      loop:
+        - { name: "bare_metal_aaep", dom: "bare_metal_domain", type: "phys"}
+        - { name: "kubernetes_aaep", dom: "kubernetes_domain", type: "phys"}
+        - { name: "external_n9k_aaep", dom: "external_n9k_domain", type: "phys"}
+        - { name: "internet_access_aaep", dom: "internet_domain", type: "l3dom"}
+      tags:
+      - aaep
+
+    - name: Binding AEP to VMM Domains
+      aci_aep_to_domain:
+        <<: *aci_login
+        aep: "{{ item.name }}"
+        domain: "{{ item.dom}}"
+        domain_type: "{{ item.type}}"
+        vm_provider: "{{ item.provider }}"
+        state: "{{ desired_state }}"
+      loop:
+        - { name: "vmm_one_aaep", dom: "vmm_domain_one", type: "vmm", provider: "vmware"}
+        - { name: "vmm_two_aaep", dom: "vmm_domain_two", type: "vmm", provider: "vmware"}
+      tags:
+      - aaep
