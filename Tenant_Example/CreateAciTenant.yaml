@@ -40,66 +40,66 @@
     l3out:
       name: 'internet'
     contracts:
-      - contract: "Web-App"
-        subject: "subject1"
-        filter: "http"
-      - contract: "Web-App"
-        subject: "subject2"
-        filter: "icmp"
-      - contract: "Cache"
-        subject: "subject1"
-        filter: "cache"
-      - contract: "Cache"
-        subject: "subject2"
-        filter: "icmp"
-      - contract: "SQL"
-        subject: "subject1"
-        filter: "sql"
-      - contract: "SQL"
-        subject: "subject2"
-        filter: "icmp"
+      - contract: 'Web-App'
+        subject: 'subject1'
+        filter: 'http'
+      - contract: 'Web-App'
+        subject: 'subject2'
+        filter: 'icmp'
+      - contract: 'Cache'
+        subject: 'subject1'
+        filter: 'cache'
+      - contract: 'Cache'
+        subject: 'subject2'
+        filter: 'icmp'
+      - contract: 'SQL'
+        subject: 'subject1'
+        filter: 'sql'
+      - contract: 'SQL'
+        subject: 'subject2'
+        filter: 'icmp'
     filters:
-      - filter: "sql"
-        entry: "sql"
-        protocol: "tcp"
-        port: "3306"
-      - filter: "http"
-        entry: "http"
-        protocol: "tcp"
-        port: "8080"
-      - filter: "icmp"
-        entry: "icmp"
-        protocol: "icmp"
-        port: "0"
-      - filter: "cache"
-        entry: "cache"
-        protocol: "tcp"
-        port: "6379"
+      - filter: 'sql'
+        entry: 'sql'
+        protocol: 'tcp'
+        port: '3306'
+      - filter: 'http'
+        entry: 'http'
+        protocol: 'tcp'
+        port: '8080'
+      - filter: 'icmp'
+        entry: 'icmp'
+        protocol: 'icmp'
+        port: '0'
+      - filter: 'cache'
+        entry: 'cache'
+        protocol: 'tcp'
+        port: '6379'
     epg_contracts:
-      - epg: "epg1"
-        contract: "Web-App"
-        type: "provider"
-      - epg: "epg1"
-        contract: "default"
-        type: "consumer"
-      - epg: "epg1"
-        contract: "SQL"
-        type: "consumer"
-      - epg: "epg2"
-        contract: "default"
-        type: "consumer"
-      - epg: "epg2"
-        contract: "SQL"
-        type: "provider"
-      - epg: "epg2"
-        contract: "Cache"
-        type: "consumer"
-      - epg: "epg3"
-        contract: "default"
-        type: "consumer"
-      - epg: "epg3"
-        contract: "Cache"
-        type: "provider"
+      - epg: 'epg1'
+        contract: 'Web-App'
+        type: 'provider'
+      - epg: 'epg1'
+        contract: 'default'
+        type: 'consumer'
+      - epg: 'epg1'
+        contract: 'SQL'
+        type: 'consumer'
+      - epg: 'epg2'
+        contract: 'default'
+        type: 'consumer'
+      - epg: 'epg2'
+        contract: 'SQL'
+        type: 'provider'
+      - epg: 'epg2'
+        contract: 'Cache'
+        type: 'consumer'
+      - epg: 'epg3'
+        contract: 'default'
+        type: 'consumer'
+      - epg: 'epg3'
+        contract: 'Cache'
+        type: 'provider'
 
   tasks:
   - name: create tenant on ACI using aci_tenant module
@@ -161,10 +161,10 @@
   - name: add EPGs to App Profile
     cisco.aci.aci_epg:
       <<: *aci_login
-      tenant: "{{tenant.name}}"
-      ap: "{{item.ap}}"
-      epg: "{{item.name}}"
-      bd: "{{item.bd}}"
+      tenant: '{{tenant.name}}'
+      ap: '{{item.ap}}'
+      epg: '{{item.name}}'
+      bd: '{{item.bd}}'
     loop: '{{tenant.epgs}}'
     delegate_to: localhost
 
@@ -184,85 +184,85 @@
   - name: create filters
     cisco.aci.aci_filter:
       <<: *aci_login
-      tenant: "{{ tenant.name }}"
-      filter: "{{ item.filter }}"
-    loop: "{{ filters }}"
+      tenant: '{{ tenant.name }}'
+      filter: '{{ item.filter }}'
+    loop: '{{ filters }}'
     delegate_to: localhost
 
   - name: create filter entry
     cisco.aci.aci_filter_entry:
       <<: *aci_login
-      tenant: "{{ tenant.name }}"
-      filter: "{{ item.filter }}"
-      entry: "{{ item.entry }}"
+      tenant: '{{ tenant.name }}'
+      filter: '{{ item.filter }}'
+      entry: '{{ item.entry }}'
       ether_type: ip
-      ip_protocol: "{{ item.protocol }}"
-      dst_port: "{{ item.port }}"
-    loop: "{{ filters }}"
+      ip_protocol: '{{ item.protocol }}'
+      dst_port: '{{ item.port }}'
+    loop: '{{ filters }}'
     delegate_to: localhost
 
   - name: create contract
     cisco.aci.aci_contract:
       <<: *aci_login
-      tenant: "{{ tenant.name }}"
-      contract: "{{ item.contract }}"
-      scope: "context"
-    loop: "{{ contracts }}"
+      tenant: '{{ tenant.name }}'
+      contract: '{{ item.contract }}'
+      scope: 'context'
+    loop: '{{ contracts }}'
     delegate_to: localhost
 
   - name: create contract subject
     cisco.aci.aci_contract_subject:
       <<: *aci_login
-      tenant: "{{ tenant.name }}"
-      contract: "{{ item.contract }}"
-      subject: "{{ item.subject }}"
-    loop: "{{ contracts }}"
+      tenant: '{{ tenant.name }}'
+      contract: '{{ item.contract }}'
+      subject: '{{ item.subject }}'
+    loop: '{{ contracts }}'
     delegate_to: localhost
 
   - name: subject to filter bindings
     cisco.aci.aci_contract_subject_to_filter:
       <<: *aci_login
-      tenant: "{{ tenant.name }}"
-      contract: "{{ item.contract }}"
-      subject: "{{ item.subject }}"
-      filter: "{{ item.filter }}"
-    loop: "{{ contracts }}"
+      tenant: '{{ tenant.name }}'
+      contract: '{{ item.contract }}'
+      subject: '{{ item.subject }}'
+      filter: '{{ item.filter }}'
+    loop: '{{ contracts }}'
     delegate_to: localhost
 
   - name: bind epg to contract
     cisco.aci.aci_epg_to_contract:
       <<: *aci_login
-      tenant: "{{ tenant.name }}"
-      ap: "{{ tenant.ap.name }}"
-      epg: "{{ item.epg }}"
-      contract: "{{ item.contract }}"
-      contract_type: "{{ item.type }}"
-    loop: "{{ epg_contracts }}"
+      tenant: '{{ tenant.name }}'
+      ap: '{{ tenant.ap.name }}'
+      epg: '{{ item.epg }}'
+      contract: '{{ item.contract }}'
+      contract_type: '{{ item.type }}'
+    loop: '{{ epg_contracts }}'
     delegate_to: localhost
 
   - name: Add Static Binding for EPG
     cisco.aci.aci_static_binding_to_epg:
       <<: *aci_login
-      tenant: "{{tenant.name}}"
-      ap: "{{ tenant.ap.name }}"
-      epg: "{{ item.epg }}"
-      encap_id: "{{ item.encap }}"
-      deploy_immediacy: "lazy"
-      interface_mode: "{{ item.ifmode }}"
-      interface_type: "{{ item.iftype }}"
-      pod_id: "{{ item.pod }}"
-      leafs: "{{ item.leaf }}"
-      interface: "{{ item.if }}"
+      tenant: '{{tenant.name}}'
+      ap: '{{ tenant.ap.name }}'
+      epg: '{{ item.epg }}'
+      encap_id: '{{ item.encap }}'
+      deploy_immediacy: 'lazy'
+      interface_mode: '{{ item.ifmode }}'
+      interface_type: '{{ item.iftype }}'
+      pod_id: '{{ item.pod }}'
+      leafs: '{{ item.leaf }}'
+      interface: '{{ item.if }}'
       state: present
     loop:
-      - { epg: "epg1", encap: "100", ifmode: "trunk", iftype: "switch_port", pod: "1", leaf: "101", if: "1/12" }
-      - { epg: "epg1", encap: "200", ifmode: "trunk", iftype: "vpc", pod: "1", leaf: "101-102", if: "external_vpc_N9K" }
+      - { epg: 'epg1', encap: '100', ifmode: 'trunk', iftype: 'switch_port', pod: '1', leaf: '101', if: '1/12' }
+      - { epg: 'epg1', encap: '200', ifmode: 'trunk', iftype: 'vpc', pod: '1', leaf: '101-102', if: 'external_vpc_N9K' }
 
   - name: provide internet access from extEpg with default contract
     cisco.aci.aci_rest:
       <<: *aci_login
       path: /api/node/mo/uni/tn-common/out-internet/instP-'{{l3out.name}}'.json
       content:
-        {"fvRsProv":{"attributes":{"tnVzBrCPName":"default","status":"created"},"children":[]}}
+        {'fvRsProv':{'attributes':{'tnVzBrCPName':'default','status':'created'},'children':[]}}
     delegate_to: localhost
     
