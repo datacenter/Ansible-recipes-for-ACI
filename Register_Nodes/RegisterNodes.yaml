@@ -1,0 +1,33 @@
+---
+- name: Register nodes (leaf/spine) with ACI
+  hosts: aci
+  gather_facts: no
+  connection: local
+  vars:
+    aci_creds: &aci_login
+      hostname: '{{inventory_hostname}}'
+      use_proxy: no
+      use_ssl: yes
+      username: ansible
+      password: cisco
+      validate_certs: no
+ 
+  tasks:
+    - name: Load CSV file containing nodes data
+      community.general.read_csv:
+        path: aci_nodes.csv
+      register: nodes
+
+    - name: "task: aci_fabric_node"
+      aci_fabric_node:
+        <<: *aci_login
+        state: "{{ item.state }}"
+        timeout: 5
+        serial: "{{ item.serial }}"
+        node_id: "{{ item.node_id }}"
+        switch: "{{ item.switch }}"
+        pod_id: "{{ item.pod_id }}"
+      loop: '{{ nodes.list }}' 
+      loop_control:
+        pause: 1
+      delegate_to: localhost
