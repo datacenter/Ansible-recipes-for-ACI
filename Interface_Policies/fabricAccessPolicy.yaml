@@ -11,7 +11,7 @@
       username: ansible
       password: cisco
       validate_certs: no
-    desired_state: 'present'
+    desired_state: 'absent'
 
   tasks:
   ################################################
@@ -128,6 +128,7 @@
               - { ifProf: "leaf101-102_interfaces", ifSel: "eth_1_24", iftype: "vpc", lfblk: "1", from: "24", end: "24", polGrp: "VPC_to_external_N9K"}
       tags:
       - interface_policy_group
+      - port_blocks
 
   ################################################
   #####           INTERFACE POLICIES          ####
