@@ -1,0 +1,10 @@
+{
+    "ospfExtP": {
+      "attributes": {
+        "status": "{{(state=='present')|ternary('created,modified','deleted')}}",
+        "areaId": "{{l3out.ospf_area_id|default('1')}}",
+        "areaType": "{{l3out.ospf_area_type|default('nssa')}}",
+        "areaCost": "{{l3out.ospf_area_cost|default('1')}}"
+      }
+    }
+}

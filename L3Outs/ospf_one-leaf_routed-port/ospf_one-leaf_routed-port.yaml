@@ -1,0 +1,198 @@
+# ==============================================================
+#          OSPF on a single border leaf with a routed port
+#
+# Note:
+# The following non-L3Out components are not created by this
+# playbook and need to be created separately.
+#   * Access Policies (Interface profiles, Interface Policy Group and such)
+#   * A L3Out Domain with an AEP and a VLAN pool
+#   * Contracts
+# ==============================================================
+---
+- hosts: aci
+  gather_facts: false
+  vars:
+    # A boilerplate of authentication parameters for all ACI Ansible modules
+    # `&my_anchor` is called YAML anchors to reuse a set of variables.
+    # `<<: *my_anchor` is used to refer to the anchor
+    aci_creds: &aci_login
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ apic_username }}'
+      password: '{{ apic_password }}'
+      validate_certs: '{{ apic_validate_certs }}'
+
+    # Change this to absent to delete this entire config
+    state: 'present'
+
+    # Main ACI configuration parameters
+    tenant: 'Ansible'
+    vrf: 'VRF1'
+    l3out:
+      # Basic L3Out parameters
+      name: 'OSPF'
+      domain: 'L3Dom'
+      route_control: ['export']
+      proto: 'ospf'
+      ospf_area_id: '0'
+      ospf_area_type: 'regular'   # regular|nssa|stub
+      ospf_area_cost: '1'
+
+      # Node and interface parameters
+      node:
+        profile: 'Nodes'
+        pod_id: '1'
+        node_id: '101'
+        router_id: '1.1.1.1'
+        router_id_as_loopback: 'no'
+      interface:
+        profile: 'Interfaces'
+        pod_id: '1'
+        node_id: '101'
+        if_path: 'eth1/12'
+        if_type: 'l3-port'  # l3-port|sub-interface|ext-svi
+        addr: '10.2.0.1/30'
+        mtu: '1500'
+
+      # External EPGs and contracts
+      extepg:
+        name: 'EPG1'
+        subnet: '0.0.0.0/0'
+        subnet_scope: ['import-security']
+        contract_name: 'ICMP'
+        contract_type: 'provider'
+
+    # Parameters used by L3Outs but owned by a tenant
+    ospf_if_policy:
+      tenant: 'Ansible'       # can be under common and reuse it everywhere
+      name: 'p2p'
+      network_type: 'p2p'     # p2p|bcast
+
+  tasks:
+    # ------------------------------------
+    # Preparation to create an L3Out
+    # ------------------------------------
+    - name: 'Ensure tenant `{{ tenant }}` is present'
+      cisco.aci.aci_tenant:
+        <<: *aci_login
+        tenant: '{{ tenant }}'
+        state: '{{ state }}'
+
+    - name: 'Ensure VRF `{{ vrf }}` is present'
+      cisco.aci.aci_vrf:
+        <<: *aci_login
+        tenant: '{{ tenant }}'
+        vrf: '{{ vrf }}'
+        state: '{{ state }}'
+
+
+    # ------------------------------------
+    # Configure L3Out (OSPF)
+    # ------------------------------------
+    - name: 'Create L3Out `{{ l3out.name }}`'
+      cisco.aci.aci_l3out:
+        <<: *aci_login
+        tenant: '{{ tenant }}'
+        vrf: '{{ vrf }}'
+        name: '{{ l3out.name }}'
+        domain: '{{ l3out.domain }}'
+        route_control: '{{ l3out.route_control }}'
+        l3protocol: '{{ l3out.proto }}'
+        state: '{{ state }}'
+
+    - name: 'Configure L3Out OSPF Area'
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: '/api/mo/uni/tn-{{ tenant }}/out-{{ l3out.name }}.json'
+        method: 'post'
+        content: '{{  lookup("template", "ospf_area.j2")  }}'
+
+    - name: 'Create L3Out Node Profile `{{ l3out.node.profile }}`'
+      cisco.aci.aci_l3out_logical_node_profile:
+        <<: *aci_login
+        tenant: '{{ tenant }}'
+        l3out: '{{ l3out.name }}'
+        node_profile: '{{ l3out.node.profile }}'
+        state: '{{ state }}'
+
+    - name: 'Configure a node in the Node Profile'
+      cisco.aci.aci_l3out_logical_node:
+        <<: *aci_login
+        tenant: '{{ tenant }}'
+        l3out: '{{ l3out.name }}'
+        node_profile: '{{ l3out.node.profile }}'
+        pod_id: '{{ l3out.node.pod_id }}'
+        node_id: '{{ l3out.node.node_id }}'
+        router_id: '{{ l3out.node.router_id }}'
+        router_id_as_loopback: '{{ l3out.node.router_id_as_loopback }}'
+        state: '{{ state }}'
+
+    - name: 'Create L3Out Interface Profile `{{ l3out.interface.profile }}`'
+      cisco.aci.aci_l3out_logical_interface_profile:
+        <<: *aci_login
+        tenant: '{{ tenant }}'
+        l3out: '{{ l3out.name }}'
+        node_profile: '{{ l3out.node.profile }}'
+        interface_profile: '{{ l3out.interface.profile }}'
+        state: '{{ state }}'
+
+    - name: 'Configure an interface in the Interface Profile'
+      cisco.aci.aci_l3out_interface:
+        <<: *aci_login
+        tenant: '{{ tenant }}'
+        l3out: '{{ l3out.name }}'
+        node_profile: '{{ l3out.node.profile }}'
+        interface_profile: '{{ l3out.interface.profile }}'
+        pod_id: '{{ l3out.interface.pod_id }}'
+        node_id: '{{ l3out.interface.node_id }}'
+        path_ep: '{{ l3out.interface.if_path }}'
+        interface_type: '{{ l3out.interface.if_type }}'
+        addr: '{{ l3out.interface.addr }}'
+        mtu: '{{ l3out.interface.mtu }}'
+        state: '{{ state }}'
+
+    - name: 'Create OSPF Interface Policy `{{ ospf_if_policy.name }}` in tenant `{{ ospf_if_policy.tenant }}`'
+      cisco.aci.aci_interface_policy_ospf:
+        <<: *aci_login
+        tenant: '{{ ospf_if_policy.tenant }}'
+        name: '{{ ospf_if_policy.name }}'
+        network_type: '{{ ospf_if_policy.network_type }}'
+        state: '{{ state }}'
+
+    - name: 'Create an OSPF Interface Profile with OSPF Interface Policy `{{ ospf_if_policy.name }}`'
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: '/api/mo/uni/tn-{{ tenant }}/out-{{ l3out.name }}/lnodep-{{ l3out.node.profile }}/lifp-{{ l3out.interface.profile }}.json'
+        method: 'post'
+        content: '{{ lookup("template", "ospf_if_profile.j2") }}'
+
+
+    # ------------------------------------
+    # Configure L3Out (EPG and contract)
+    # ------------------------------------
+    - name: 'Create L3Out EPG `{{ l3out.extepg.name }}`'
+      cisco.aci.aci_l3out_extepg:
+        <<: *aci_login
+        tenant: '{{ tenant }}'
+        l3out: '{{ l3out.name }}'
+        name: '{{ l3out.extepg.name }}'
+        state: '{{ state }}'
+
+    - name: 'Create L3Out EPG Subnet `{{ l3out.extepg.subnet }}`'
+      cisco.aci.aci_l3out_extsubnet:
+        <<: *aci_login
+        tenant: '{{ tenant }}'
+        l3out: '{{ l3out.name }}'
+        extepg: '{{ l3out.extepg.name }}'
+        network: '{{ l3out.extepg.subnet }}'
+        scope: '{{ l3out.extepg.subnet_scope }}'
+        state: '{{ state }}'
+
+    - name: 'Add a contract to L3Out EPG `{{ l3out.extepg.name }}`'
+      cisco.aci.aci_l3out_extepg_to_contract:
+        <<: *aci_login
+        tenant: '{{ tenant }}'
+        l3out: '{{ l3out.name }}'
+        extepg: '{{ l3out.extepg.name }}'
+        contract: '{{ l3out.extepg.contract_name }}'
+        contract_type: '{{ l3out.extepg.contract_type }}'
+        state: '{{ state }}'
