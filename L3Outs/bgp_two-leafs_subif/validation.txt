@@ -1,0 +1,47 @@
+$ ansible-playbook bgp_two-leafs_subif.yaml -i inventory.ini
+
+PLAY [aci] ******************************************************************************************************************************
+
+TASK [Ensure tenant `Ansible` is present] ***********************************************************************************************
+ok: [192.168.1.100]
+
+TASK [Ensure VRF `VRF1` is present] *****************************************************************************************************
+ok: [192.168.1.100]
+
+TASK [Create L3Out `BGP`] ***************************************************************************************************************
+ok: [192.168.1.100]
+
+TASK [Create L3Out Node Profile `Nodes`] ************************************************************************************************
+ok: [192.168.1.100]
+
+TASK [Configure nodes in the Node Profile] **********************************************************************************************
+ok: [192.168.1.100] => (item={'pod_id': '1', 'node_id': '101', 'router_id': '1.1.1.1', 'router_id_as_loopback': 'no'})
+ok: [192.168.1.100] => (item={'pod_id': '1', 'node_id': '102', 'router_id': '2.2.2.2', 'router_id_as_loopback': 'no'})
+
+TASK [Create L3Out Interface Profile `Interfaces`] **************************************************************************************
+ok: [192.168.1.100]
+
+TASK [Configure interfaces in the Interface Profile] ************************************************************************************
+ok: [192.168.1.100] => (item={'pod_id': '1', 'node_id': '101', 'if_path': 'eth1/11', 'if_type': 'sub-interface', 'if_mode': 'regular', 'encap': 'vlan-2051', 'addr': '10.1.0.1/30', 'mtu': '1500', 'bgp_peers': [{'peer_ip': '10.1.0.2', 'remote_asn': 65003, 'ttl': 1}]})
+ok: [192.168.1.100] => (item={'pod_id': '1', 'node_id': '102', 'if_path': 'eth1/11', 'if_type': 'sub-interface', 'if_mode': 'regular', 'encap': 'vlan-2051', 'addr': '10.1.0.5/30', 'mtu': '1500', 'bgp_peers': [{'peer_ip': '10.1.0.6', 'remote_asn': 65003, 'ttl': 1}]})
+
+TASK [Create BGP Peer Connectivity Profiles under Interface Profile `Interfaces`] *******************************************************
+ok: [192.168.1.100] => (item=[{'pod_id': '1', 'node_id': '101', 'if_path': 'eth1/11', 'if_type': 'sub-interface', 'if_mode': 'regular', 'encap': 'vlan-2051', 'addr': '10.1.0.1/30', 'mtu': '1500', 'bgp_peers': [{'peer_ip': '10.1.0.2', 'remote_asn': 65003, 'ttl': 1}]}, {'peer_ip': '10.1.0.2', 'remote_asn': 65003, 'ttl': 1}])
+ok: [192.168.1.100] => (item=[{'pod_id': '1', 'node_id': '102', 'if_path': 'eth1/11', 'if_type': 'sub-interface', 'if_mode': 'regular', 'encap': 'vlan-2051', 'addr': '10.1.0.5/30', 'mtu': '1500', 'bgp_peers': [{'peer_ip': '10.1.0.6', 'remote_asn': 65003, 'ttl': 1}]}, {'peer_ip': '10.1.0.6', 'remote_asn': 65003, 'ttl': 1}])
+
+TASK [Create L3Out EPGs] ****************************************************************************************************************
+ok: [192.168.1.100] => (item={'name': 'EPG1', 'networks': [{'subnet': '172.16.1.0/24', 'scope': ['import-security']}, {'subnet': '172.16.2.0/24', 'scope': ['import-security']}], 'contracts': [{'name': 'ICMP', 'type': 'provider'}, {'name': 'HTTP', 'type': 'consumer'}]})
+ok: [192.168.1.100] => (item={'name': 'EPG2', 'networks': [{'subnet': '192.168.1.0/24', 'scope': ['import-security']}], 'contracts': [{'name': 'ICMP', 'type': 'provider'}]})
+
+TASK [Create L3Out EPG Subnets] *********************************************************************************************************
+ok: [192.168.1.100] => (item=[{'name': 'EPG1', 'networks': [{'subnet': '172.16.1.0/24', 'scope': ['import-security']}, {'subnet': '172.16.2.0/24', 'scope': ['import-security']}], 'contracts': [{'name': 'ICMP', 'type': 'provider'}, {'name': 'HTTP', 'type': 'consumer'}]}, {'subnet': '172.16.1.0/24', 'scope': ['import-security']}])
+ok: [192.168.1.100] => (item=[{'name': 'EPG1', 'networks': [{'subnet': '172.16.1.0/24', 'scope': ['import-security']}, {'subnet': '172.16.2.0/24', 'scope': ['import-security']}], 'contracts': [{'name': 'ICMP', 'type': 'provider'}, {'name': 'HTTP', 'type': 'consumer'}]}, {'subnet': '172.16.2.0/24', 'scope': ['import-security']}])
+ok: [192.168.1.100] => (item=[{'name': 'EPG2', 'networks': [{'subnet': '192.168.1.0/24', 'scope': ['import-security']}], 'contracts': [{'name': 'ICMP', 'type': 'provider'}]}, {'subnet': '192.168.1.0/24', 'scope': ['import-security']}])
+
+TASK [Add contracts to an L3Out EPG] ****************************************************************************************************
+ok: [192.168.1.100] => (item=[{'name': 'EPG1', 'networks': [{'subnet': '172.16.1.0/24', 'scope': ['import-security']}, {'subnet': '172.16.2.0/24', 'scope': ['import-security']}], 'contracts': [{'name': 'ICMP', 'type': 'provider'}, {'name': 'HTTP', 'type': 'consumer'}]}, {'name': 'ICMP', 'type': 'provider'}])
+ok: [192.168.1.100] => (item=[{'name': 'EPG1', 'networks': [{'subnet': '172.16.1.0/24', 'scope': ['import-security']}, {'subnet': '172.16.2.0/24', 'scope': ['import-security']}], 'contracts': [{'name': 'ICMP', 'type': 'provider'}, {'name': 'HTTP', 'type': 'consumer'}]}, {'name': 'HTTP', 'type': 'consumer'}])
+ok: [192.168.1.100] => (item=[{'name': 'EPG2', 'networks': [{'subnet': '192.168.1.0/24', 'scope': ['import-security']}], 'contracts': [{'name': 'ICMP', 'type': 'provider'}]}, {'name': 'ICMP', 'type': 'provider'}])
+
+PLAY RECAP ******************************************************************************************************************************
+192.168.1.100              : ok=11   changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0

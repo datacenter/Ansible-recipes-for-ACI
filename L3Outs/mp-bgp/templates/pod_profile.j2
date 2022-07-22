@@ -1,0 +1,34 @@
+{
+  "fabricInst": {
+    "attributes": {"status": "created,modified"},
+      "children": [{
+        "fabricPodP": {
+          "attributes": {"name": "default"},
+          "children": [{
+            "fabricPodS": {
+              "attributes": {
+                "name": "default",
+                "type": "ALL"
+              },
+              "children": [{
+                "fabricRsPodPGrp": {
+                  "attributes": {
+                    "tDn": "uni/fabric/funcprof/podpgrp-default"
+                  }
+                }
+              }]
+            }
+          }]
+        }
+      },{
+        "fabricFuncP": {
+          "attributes": {},
+            "children": [{
+              "fabricPodPGrp": {
+                "attributes": {"name": "default"}
+              }
+            }]
+        }
+      }]
+  }
+}
