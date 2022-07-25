@@ -1,0 +1,51 @@
+# ==============================================================
+#                        Infra MP-BGP
+# ==============================================================
+---
+- hosts: aci
+  gather_facts: false
+  vars:
+    # A boilerplate of authentication parameters for all ACI Ansible modules
+    # `&my_anchor` is called YAML anchors to reuse a set of variables.
+    # `<<: *my_anchor` is used to refer to the anchor
+    aci_creds: &aci_login
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ apic_username }}'
+      password: '{{ apic_password }}'
+      validate_certs: '{{ apic_validate_certs }}'
+
+    # Change this to absent to delete this entire config
+    state: 'present'
+
+    # Main ACI configuration parameters
+    bgp_as: 65002
+    bgp_rr_spines:
+      - pod_id: 1
+        node_id: 1001
+      - pod_id: 1
+        node_id: 1002
+
+  tasks:
+    - name: 'Set ACI fabric BGP AS number {{ bgp_as }}'
+      cisco.aci.aci_bgp_rr_asn:
+        <<: *aci_login
+        asn: 65001
+        state: '{{ state }}'
+
+    - name: 'Specify spines as BGP route reflectors'
+      cisco.aci.aci_bgp_rr_node:
+        <<: *aci_login
+        pod_id: '{{ item.pod_id }}'
+        node_id: '{{ item.node_id }}'
+        state: '{{ state }}'
+      loop:
+        '{{ bgp_rr_spines }}'
+
+    - name: 'Apply BGP route reflector policy to the default pod profile'
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: '/api/mo/uni/fabric.json'
+        method: 'post'
+        content: '{{ lookup("template", "pod_profile.j2") }}'
+      when:
+        state == 'present'

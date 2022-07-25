@@ -1,0 +1,226 @@
+# ==============================================================
+#    BGP on multiple border leaf switches with sub-interfaces
+#                      with ansible loop
+#
+# Note:
+# The following non-L3Out components are not created by this
+# playbook and need to be created separately.
+#   * Access Policies (Interface profiles, Interface Policy Group and such)
+#   * A L3Out Domain with an AEP and a VLAN pool
+#   * Contracts
+# ==============================================================
+---
+- hosts: aci
+  gather_facts: false
+  vars:
+    # A boilerplate of authentication parameters for all ACI Ansible modules
+    # `&my_anchor` is called YAML anchors to reuse a set of variables.
+    # `<<: *my_anchor` is used to refer to the anchor
+    aci_creds: &aci_login
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ apic_username }}'
+      password: '{{ apic_password }}'
+      validate_certs: '{{ apic_validate_certs }}'
+
+    # Change this to absent to delete this entire config
+    state: 'present'
+
+    # Main ACI configuration parameters
+    tenant: 'Ansible'
+    vrf: 'VRF1'
+    l3out:
+      # Basic L3Out parameters
+      name: 'BGP'
+      domain: 'L3Dom'
+      route_control: ['export']
+      proto: 'bgp'
+
+      # Node and interface parameters
+      node_profile: 'Nodes'
+      if_profile: 'Interfaces'
+      nodes:
+        - {pod_id: '1', node_id: '101', router_id: '1.1.1.1', router_id_as_loopback: 'no'}
+        - {pod_id: '1', node_id: '102', router_id: '2.2.2.2', router_id_as_loopback: 'no'}
+      interfaces:
+        - pod_id: '1'
+          node_id: '101'
+          if_path: 'eth1/11'
+          if_type: 'sub-interface'  # l3-port|sub-interface|ext-svi
+          if_mode: 'regular'        # regular(i.e. tagged)|untagged|native
+          encap: 'vlan-2051'
+          addr: '10.1.0.1/30'
+          mtu: '1500'
+          bgp_peers:
+            - peer_ip: '10.1.0.2'
+              remote_asn: 65003
+              ttl: 1
+        - pod_id: '1'
+          node_id: '102'
+          if_path: 'eth1/11'
+          if_type: 'sub-interface'
+          if_mode: 'regular'
+          encap: 'vlan-2051'
+          addr: '10.1.0.5/30'
+          mtu: '1500'
+          bgp_peers:
+            - peer_ip: '10.1.0.6'
+              remote_asn: 65003
+              ttl: 1
+
+      # External EPGs and contracts
+      extepgs:
+        - name: 'EPG1'
+          networks:
+            - subnet: '172.16.1.0/24'
+              scope: ['import-security']  # [export-rtctrl, import-rtctrl, import-security, shared-rtctrl, shared-security]
+            - subnet: '172.16.2.0/24'
+              scope: ['import-security']
+          contracts:
+            - name: 'ICMP'
+              type: 'provider'
+            - name: 'HTTP'
+              type: 'consumer'
+        - name: 'EPG2'
+          networks:
+            - subnet: '192.168.1.0/24'
+              scope: ['import-security']
+          contracts:
+            - name: 'ICMP'
+              type: 'provider'
+
+  tasks:
+    # ------------------------------------
+    # Preparation to create an L3Out
+    # ------------------------------------
+    - name: 'Ensure tenant `{{ tenant }}` is present'
+      cisco.aci.aci_tenant:
+        <<: *aci_login
+        tenant: '{{ tenant }}'
+        state: '{{ state }}'
+
+    - name: 'Ensure VRF `{{ vrf }}` is present'
+      cisco.aci.aci_vrf:
+        <<: *aci_login
+        tenant: '{{ tenant }}'
+        vrf: '{{ vrf }}'
+        state: '{{ state }}'
+
+
+    # ------------------------------------
+    # Configure L3Out (BGP)
+    # ------------------------------------
+    - name: 'Create L3Out `{{ l3out.name }}`'
+      cisco.aci.aci_l3out:
+        <<: *aci_login
+        tenant: '{{ tenant }}'
+        vrf: '{{ vrf }}'
+        name: '{{ l3out.name }}'
+        domain: '{{ l3out.domain }}'
+        route_control: '{{ l3out.route_control }}'
+        l3protocol: '{{ l3out.proto }}'
+        state: '{{ state }}'
+
+    - name: 'Create L3Out Node Profile `{{ l3out.node_profile }}`'
+      cisco.aci.aci_l3out_logical_node_profile:
+        <<: *aci_login
+        tenant: '{{ tenant }}'
+        l3out: '{{ l3out.name }}'
+        node_profile: '{{ l3out.node_profile }}'
+        state: '{{ state }}'
+
+    - name: 'Configure nodes in the Node Profile'
+      cisco.aci.aci_l3out_logical_node:
+        <<: *aci_login
+        tenant: '{{ tenant }}'
+        l3out: '{{ l3out.name }}'
+        node_profile: '{{ l3out.node_profile }}'
+        pod_id: '{{ item.pod_id }}'
+        node_id: '{{ item.node_id }}'
+        router_id: '{{ item.router_id }}'
+        router_id_as_loopback: '{{ item.router_id_as_loopback }}'
+        state: '{{ state }}'
+      loop:
+        '{{ l3out.nodes }}'
+
+    - name: 'Create L3Out Interface Profile `{{ l3out.if_profile }}`'
+      cisco.aci.aci_l3out_logical_interface_profile:
+        <<: *aci_login
+        tenant: '{{ tenant }}'
+        l3out: '{{ l3out.name }}'
+        node_profile: '{{ l3out.node_profile }}'
+        interface_profile: '{{ l3out.if_profile }}'
+        state: '{{ state }}'
+
+    - name: 'Configure interfaces in the Interface Profile'
+      cisco.aci.aci_l3out_interface:
+        <<: *aci_login
+        tenant: '{{ tenant }}'
+        l3out: '{{ l3out.name }}'
+        node_profile: '{{ l3out.node_profile }}'
+        interface_profile: '{{ l3out.if_profile }}'
+        pod_id: '{{ item.pod_id }}'
+        node_id: '{{ item.node_id }}'
+        path_ep: '{{ item.if_path }}'
+        interface_type: '{{ item.if_type }}'
+        mode: '{{ item.if_mode }}'
+        encap: '{{ item.encap | default(omit) }}'  # not required for l3-port
+        addr: '{{ item.addr }}'
+        mtu: '{{ item.mtu }}'
+        state: '{{ state }}'
+      loop:
+        '{{ l3out.interfaces }}'
+
+    - name: 'Create BGP Peer Connectivity Profiles under Interface Profile `{{ l3out.if_profile }}`'
+      cisco.aci.aci_l3out_bgp_peer:
+        <<: *aci_login
+        tenant: '{{ tenant }}'
+        l3out: '{{ l3out.name }}'
+        node_profile: '{{ l3out.node_profile }}'
+        interface_profile: '{{ l3out.if_profile }}'
+        pod_id: '{{ item.0.pod_id }}'
+        node_id: '{{ item.0.node_id }}'
+        path_ep: '{{ item.0.if_path }}'
+        peer_ip: '{{ item.1.peer_ip }}'
+        remote_asn: '{{ item.1.remote_asn }}'
+        ttl: '{{ item.1.ttl }}'
+        state: '{{ state }}'
+      loop:
+        '{{ l3out.interfaces | subelements("bgp_peers") }}'
+
+
+    # ------------------------------------
+    # Configure L3Out (EPG and contract)
+    # ------------------------------------
+    - name: 'Create L3Out EPGs'
+      cisco.aci.aci_l3out_extepg:
+        <<: *aci_login
+        tenant: '{{ tenant }}'
+        l3out: '{{ l3out.name }}'
+        name: '{{ item.name }}'
+        state: '{{ state }}'
+      loop:
+        '{{ l3out.extepgs }}'
+
+    - name: 'Create L3Out EPG Subnets'
+      cisco.aci.aci_l3out_extsubnet:
+        <<: *aci_login
+        tenant: '{{ tenant }}'
+        l3out: '{{ l3out.name }}'
+        extepg: '{{ item.0.name }}'
+        network: '{{ item.1.subnet }}'
+        scope: '{{ item.1.scope }}'
+        state: '{{ state }}'
+      loop:
+        '{{ l3out.extepgs | subelements("networks") }}'
+
+    - name: 'Add contracts to an L3Out EPG'
+      cisco.aci.aci_l3out_extepg_to_contract:
+        <<: *aci_login
+        tenant: '{{ tenant }}'
+        l3out: '{{ l3out.name }}'
+        extepg: '{{ item.0.name }}'
+        contract: '{{ item.1.name }}'
+        contract_type: '{{ item.1.type }}'
+        state: '{{ state }}'
+      loop:
+        '{{ l3out.extepgs | subelements("contracts") }}'

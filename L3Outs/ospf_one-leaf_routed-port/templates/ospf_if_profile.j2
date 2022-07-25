@@ -1,0 +1,13 @@
+{
+    "ospfIfP": {
+        "attributes": {
+          "status": "{{(state=='present')|ternary('created,modified','deleted')}}",
+        },
+        "children": [{
+            "ospfRsIfPol": {
+            "attributes": { "tnOspfIfPolName": "{{ospf_if_policy.name}}" }
+            }
+        }]
+    }
+}
+

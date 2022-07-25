@@ -1,0 +1,55 @@
+$ ansible-playbook ospf_two-leafs_vpc.yaml -i inventory.ini 
+
+PLAY [aci] ******************************************************************************************************************************
+
+TASK [Ensure tenant `Ansible` is present] ***********************************************************************************************
+ok: [192.168.1.100]
+
+TASK [Ensure VRF `VRF1` is present] *****************************************************************************************************
+ok: [192.168.1.100]
+
+TASK [Create L3Out `OSPF`] **************************************************************************************************************
+ok: [192.168.1.100]
+
+TASK [Configure L3Out OSPF Area] ********************************************************************************************************
+ok: [192.168.1.100]
+
+TASK [Create L3Out Node Profile `Nodes`] ************************************************************************************************
+ok: [192.168.1.100]
+
+TASK [Configure nodes in the Node Profile] **********************************************************************************************
+ok: [192.168.1.100] => (item={'pod_id': '1', 'node_id': '101', 'router_id': '1.1.1.1', 'router_id_as_loopback': 'no'})
+ok: [192.168.1.100] => (item={'pod_id': '1', 'node_id': '102', 'router_id': '2.2.2.2', 'router_id_as_loopback': 'no'})
+
+TASK [Create L3Out Interface Profile `Interfaces`] **************************************************************************************
+ok: [192.168.1.100]
+
+TASK [Configure interfaces in the Interface Profile] ************************************************************************************
+ok: [192.168.1.100] => (item={'pod_id': '1', 'node_id': '101-102', 'if_path': 'VPC1_IFPG', 'if_type': 'ext-svi', 'if_mode': 'regular', 'encap': 'vlan-2052', 'mtu': '1500', 'sides': [{'side': 'A', 'addr': '10.2.0.1/24'}, {'side': 'B', 'addr': '10.2.0.2/24'}]})
+
+TASK [Configure SVI IP address on each side of the vPC] *********************************************************************************
+ok: [192.168.1.100] => (item=[{'pod_id': '1', 'node_id': '101-102', 'if_path': 'VPC1_IFPG', 'if_type': 'ext-svi', 'if_mode': 'regular', 'encap': 'vlan-2052', 'mtu': '1500', 'sides': [{'side': 'A', 'addr': '10.2.0.1/24'}, {'side': 'B', 'addr': '10.2.0.2/24'}]}, {'side': 'A', 'addr': '10.2.0.1/24'}])
+ok: [192.168.1.100] => (item=[{'pod_id': '1', 'node_id': '101-102', 'if_path': 'VPC1_IFPG', 'if_type': 'ext-svi', 'if_mode': 'regular', 'encap': 'vlan-2052', 'mtu': '1500', 'sides': [{'side': 'A', 'addr': '10.2.0.1/24'}, {'side': 'B', 'addr': '10.2.0.2/24'}]}, {'side': 'B', 'addr': '10.2.0.2/24'}])
+
+TASK [Create OSPF Interface Policy `bcast in tenant `Ansible`] **************************************************************************
+ok: [192.168.1.100]
+
+TASK [Create an OSPF Interface Profile with OSPF Interface Policy `bcast`] **************************************************************
+ok: [192.168.1.100]
+
+TASK [Create L3Out EPGs] ****************************************************************************************************************
+ok: [192.168.1.100] => (item={'name': 'EPG1', 'networks': [{'subnet': '172.16.1.0/24', 'scope': ['import-security']}, {'subnet': '172.16.2.0/24', 'scope': ['import-security']}], 'contracts': [{'name': 'ICMP', 'type': 'provider'}, {'name': 'HTTP', 'type': 'consumer'}]})
+ok: [192.168.1.100] => (item={'name': 'EPG2', 'networks': [{'subnet': '192.168.1.0/24', 'scope': ['import-security']}], 'contracts': [{'name': 'ICMP', 'type': 'provider'}]})
+
+TASK [Create L3Out EPG Subnets] *********************************************************************************************************
+ok: [192.168.1.100] => (item=[{'name': 'EPG1', 'networks': [{'subnet': '172.16.1.0/24', 'scope': ['import-security']}, {'subnet': '172.16.2.0/24', 'scope': ['import-security']}], 'contracts': [{'name': 'ICMP', 'type': 'provider'}, {'name': 'HTTP', 'type': 'consumer'}]}, {'subnet': '172.16.1.0/24', 'scope': ['import-security']}])
+ok: [192.168.1.100] => (item=[{'name': 'EPG1', 'networks': [{'subnet': '172.16.1.0/24', 'scope': ['import-security']}, {'subnet': '172.16.2.0/24', 'scope': ['import-security']}], 'contracts': [{'name': 'ICMP', 'type': 'provider'}, {'name': 'HTTP', 'type': 'consumer'}]}, {'subnet': '172.16.2.0/24', 'scope': ['import-security']}])
+ok: [192.168.1.100] => (item=[{'name': 'EPG2', 'networks': [{'subnet': '192.168.1.0/24', 'scope': ['import-security']}], 'contracts': [{'name': 'ICMP', 'type': 'provider'}]}, {'subnet': '192.168.1.0/24', 'scope': ['import-security']}])
+
+TASK [Add contracts to an L3Out EPG] ****************************************************************************************************
+ok: [192.168.1.100] => (item=[{'name': 'EPG1', 'networks': [{'subnet': '172.16.1.0/24', 'scope': ['import-security']}, {'subnet': '172.16.2.0/24', 'scope': ['import-security']}], 'contracts': [{'name': 'ICMP', 'type': 'provider'}, {'name': 'HTTP', 'type': 'consumer'}]}, {'name': 'ICMP', 'type': 'provider'}])
+ok: [192.168.1.100] => (item=[{'name': 'EPG1', 'networks': [{'subnet': '172.16.1.0/24', 'scope': ['import-security']}, {'subnet': '172.16.2.0/24', 'scope': ['import-security']}], 'contracts': [{'name': 'ICMP', 'type': 'provider'}, {'name': 'HTTP', 'type': 'consumer'}]}, {'name': 'HTTP', 'type': 'consumer'}])
+ok: [192.168.1.100] => (item=[{'name': 'EPG2', 'networks': [{'subnet': '192.168.1.0/24', 'scope': ['import-security']}], 'contracts': [{'name': 'ICMP', 'type': 'provider'}]}, {'name': 'ICMP', 'type': 'provider'}])
+
+PLAY RECAP ******************************************************************************************************************************
+192.168.1.100              : ok=14   changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
