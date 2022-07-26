@@ -1,0 +1,684 @@
+---
+- name: Define essential vars
+  hosts: aci
+  gather_facts: no
+  connection: local
+  vars:
+    loop_retries: 3
+    retry_delay: 3
+    aci_creds: &aci_login
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ apic_username }}'
+      password: '{{ apic_password }}'
+      validate_certs: '{{ apic_validate_certs }}'
+      use_proxy: '{{ apic_use_proxy }}'
+  
+  tasks:
+    - name: Import ACI vars from file
+      include_vars:
+        file: "{{ aci_vars_file }}"
+
+    - name: Configure APIC Connectivity Preferences
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/fabric/connectivityPrefs.json
+        method: post
+        content:
+          mgmtConnectivityPrefs:
+            attributes:
+              dn: "uni/fabric/connectivityPrefs"
+              interfacePref: "{{ aci_data.system.apic_conn_pref }}"
+      when:
+        - aci_data.system.apic_conn_pref is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Configure System Alias and Banners
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/userext/preloginbanner.json
+        method: post
+        content:
+          aaaPreLoginBanner:
+            attributes:
+              dn: "uni/userext/preloginbanner"
+              guiTextMessage: "{{ aci_data.system.system_alias_banner.alias|default(omit) }}"
+              message: "{{ aci_data.system.system_alias_banner.apic_banner|default(omit) }}"
+              switchMessage: "{{ aci_data.system.system_alias_banner.switch_banner|default(omit) }}"
+      when:
+        - aci_data.system.system_alias_banner is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Configure System Response Time
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/fabric/comm-default/apiResp.json
+        method: post
+        content:
+          commApiRespTime:
+            attributes:
+              dn: "uni/fabric/comm-default/apiResp"
+              enableCalculation: "{{ aci_data.system.system_response_time.state }}"
+              respTimeThreshold: "{{ aci_data.system.system_response_time.resp_threshold|default(omit) }}"
+              calcWindow: "{{ aci_data.system.system_response_time.frequency|default(omit) }}"
+              topNRequests: "{{ aci_data.system.system_response_time.top_slow_requests|default(omit) }}"
+      when:
+        - aci_data.system.system_response_time.state is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Configure Global AES Passphrase Encryption Settings
+      no_log: True
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/exportcryptkey.json
+        method: post
+        content:
+          pkiExportEncryptionKey:
+            attributes:
+              dn: "uni/exportcryptkey"
+              strongEncryptionEnabled: "{{ aci_data.system.global_aes_encryption.enabled|default('no') }}"
+              passphrase: "{{ aci_data.system.global_aes_encryption.passphrase }}"
+      when:
+        - aci_data.system.global_aes_encryption.passphrase is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Configure Control Plane MTU
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/infra/CPMtu.json
+        method: post
+        content:
+          infraCPMtuPol:
+            attributes:
+              dn: "uni/infra/CPMtu"
+              CPMtu: "{{ aci_data.system.control_plane_mtu }}"
+      when:
+        - aci_data.system.control_plane_mtu is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Configure Endpoint Controls - Endpoint Loop Protection
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/infra/epLoopProtectP-default.json
+        method: post
+        content:
+          epLoopProtectP:
+            attributes:
+              dn: "uni/infra/epLoopProtectP-default"
+              adminSt: "{{ aci_data.system.endpoint_control.ep_loop_protection.state }}"
+      when:
+        - aci_data.system.endpoint_control.ep_loop_protection.state is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Configure Endpoint Controls - Rogue Endpoint Control
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/infra/epCtrlP-default.json
+        method: post
+        content:
+          epControlP:
+            attributes:
+              dn: "uni/infra/epCtrlP-default"
+              adminSt: "{{ aci_data.system.endpoint_control.rogue_ep_control.state }}"
+              rogueEpDetectIntvl: "{{ aci_data.system.endpoint_control.rogue_ep_control.detection_interval|default(omit) }}"
+              rogueEpDetectMult: "{{ aci_data.system.endpoint_control.rogue_ep_control.multiplication_factor|default(omit) }}"
+              holdIntvl: "{{ aci_data.system.endpoint_control.rogue_ep_control.hold_interval|default(omit) }}"
+      when:
+        - aci_data.system.endpoint_control.rogue_ep_control.state is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Configure Endpoint Controls - IP Aging
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/infra/ipAgingP-default.json
+        method: post
+        content:
+          epIpAgingP:
+            attributes:
+              dn: "uni/infra/ipAgingP-default"
+              adminSt: "{{ aci_data.system.endpoint_control.ip_aging.state }}"
+      when:
+        - aci_data.system.endpoint_control.ip_aging.state is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Configure Fabric-Wide Settings
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/infra/settings.json
+        method: post
+        content:
+          infraSetPol:
+            attributes:
+              dn: "uni/infra/settings"
+              unicastXrEpLearnDisable: "{{ aci_data.system.fabric_wide.disable_remote_ep_learn|default(omit) }}"
+              enforceSubnetCheck: "{{ aci_data.system.fabric_wide.enforce_subnet_check|default(omit) }}"
+              validateOverlappingVlans: "{{ aci_data.system.fabric_wide.enforce_epg_vlan_validation|default(omit) }}"
+              domainValidation: "{{ aci_data.system.fabric_wide.enforce_domain_validation|default(omit) }}"
+              enableRemoteLeafDirect: "{{ aci_data.system.fabric_wide.enable_remote_leaf_direct|default(omit) }}"
+              opflexpAuthenticateClients: "{{ aci_data.system.fabric_wide.opflex_client_auth|default(omit) }}"
+              reallocateGipo: "{{ aci_data.system.fabric_wide.reallocate_gipo|default(omit) }}"
+      when:
+        - aci_data.system.fabric_wide is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Configure Port Tracking
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/infra/trackEqptFabP-default.json
+        method: post
+        content:
+          infraPortTrackPol:
+            attributes:
+              dn: "uni/infra/trackEqptFabP-default"
+              adminSt: "{{ aci_data.system.port_track.state }}"
+              delay: "{{ aci_data.system.port_track.delay|default(omit) }}"
+              minlinks: "{{ aci_data.system.port_track.links|default(omit) }}"
+      when:
+        - aci_data.system.port_track.state is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Configure System GIPo
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/infra/systemgipopol.json
+        method: post
+        content:
+          fmcastSystemGIPoPol:
+            attributes:
+              dn: "uni/infra/systemgipopol"
+              useConfiguredSystemGIPo: "{{ aci_data.system.system_gipo }}"
+      when:
+        - aci_data.system.system_gipo is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Configure Date and Time
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/fabric/format-default.json
+        method: post
+        content:
+          datetimeFormat:
+            attributes:
+              dn: "uni/fabric/format-default"
+              displayFormat: "{{ aci_data.system.date_time.format|default(omit) }}"
+              tz: "{{ aci_data.system.date_time.timezone|default(omit) }}"
+              showOffset: "{{ aci_data.system.date_time.offset|default(omit) }}"
+      when:
+        - aci_data.system.date_time is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Configure BGP ASN
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/fabric/bgpInstP-default/as.json
+        method: post
+        content:
+          bgpAsP:
+            attributes:
+              dn: "uni/fabric/bgpInstP-default/as"
+              asn: "{{ aci_data.system.bgp_rr.asn }}"
+      when:
+        - aci_data.system.bgp_rr.asn is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Configure BGP Route Reflectors
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/fabric/bgpInstP-default/rr.json
+        method: post
+        content:
+          bgpRRP:
+            attributes:
+              dn: "uni/fabric/bgpInstP-default/rr"
+            children:
+              - bgpRRNodePEp:
+                  attributes:
+                    id: "{{ item.node }}"
+                    podId: "{{ item.pod|default('1') }}"
+      loop: '{{ aci_data.system.bgp_rr.rr }}'
+      when:
+        - item.node is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Configure COOP Group Policy
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/fabric/pol-default.json
+        method: post
+        content:
+          coopPol:
+            attributes:
+              dn: "uni/fabric/pol-default"
+              type: "{{ aci_data.system.coop_group_policy }}"
+      when:
+        - aci_data.system.coop_group_policy is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Configure Load Balancer
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/fabric/lbp-default.json
+        method: post
+        content:
+          lbpPol:
+            attributes:
+              dn: "uni/fabric/lbp-default"
+              dlbMode: "{{ aci_data.system.load_balancer.dlb|default(omit) }}"
+              pri: "{{ aci_data.system.load_balancer.dpp|default(omit) }}"
+              mode: "{{ aci_data.system.load_balancer.lb_mode|default(omit) }}"
+              hashGtp: "{{ aci_data.system.load_balancer.gtp|default(omit) }}"
+      when:
+        - aci_data.system.load_balancer is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Configure Precision Time Protocol
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/fabric/ptpmode.json
+        method: post
+        content:
+          latencyPtpMode:
+            attributes:
+              dn: "uni/fabric/ptpmode"
+              state: "{{ aci_data.system.ptp.state }}"
+              systemResolution: "{{ aci_data.system.ptp.resolution|default(omit) }}"
+      when:
+        - aci_data.system.ptp.state is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+    
+    - name: Configure Fabric Pod Date and Time Policy
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/fabric/time-{{ item.date_time_name }}.json
+        method: post
+        content:
+          datetimePol:
+            attributes:
+              name: "{{ item.date_time_name }}"
+              descr: "{{ item.date_time_description|default(omit) }}"
+              adminSt: "{{ item.date_time_admin_state|default(omit) }}"
+              serverState: "{{ item.date_time_server_state|default(omit) }}"
+              authSt: "{{ item.date_time_auth_state|default(omit) }}"
+      loop: '{{ aci_data.fabric.pod_policy|aci_listify("date_time") }}'
+      when:
+        - item.date_time_name is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Configure Fabric Pod Date and Time Policy - NTP Servers
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/fabric/time-{{ item.date_time_name }}/ntpprov-{{ item.date_time_ntp_name }}.json
+        method: post
+        content:
+          datetimeNtpProv:
+            attributes:
+              name: "{{ item.date_time_ntp_name }}"
+              minPoll: "{{ item.date_time_ntp_min_poll|default(omit) }}"
+              maxPoll: "{{ item.date_time_ntp_max_poll|default(omit) }}"
+              preferred: "{{ item.date_time_ntp_preferred|default(omit) }}"
+              descr: "{{ item.date_time_ntp_description|default(omit) }}"
+            children:
+              - datetimeRsNtpProvToEpg:
+                  attributes:
+                    tDn: "uni/tn-mgmt/mgmtp-default/{{ item.date_time_ntp_mgmt_epg|default('oob-default') }}"
+      loop: '{{ aci_data.fabric.pod_policy|aci_listify("date_time","ntp") }}'
+      when:
+        - item.date_time_name is defined
+        - item.date_time_ntp_name is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Configure Fabric Pod SNMP Policy
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/fabric/snmppol-{{ item.snmp_name }}.json
+        method: post
+        content:
+          snmpPol:
+            attributes:
+              name: "{{ item.snmp_name }}"
+              descr: "{{ item.snmp_description|default(omit) }}"
+              adminSt: "{{ item.snmp_state|default(omit) }}"
+              contact: "{{ item.snmp_contact|default(omit) }}"
+              loc: "{{ item.snmp_location|default(omit) }}"
+      loop: '{{ aci_data.fabric.pod_policy|aci_listify("snmp") }}'
+      when:
+        - item.snmp_name is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Configure Fabric Pod SNMP Policy - Client Group Policies
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/fabric/snmppol-{{ item.snmp_name }}/clgrp-{{ item.snmp_client_group_name }}.json
+        method: post
+        content:
+          snmpClientGrpP:
+            attributes:
+              name: "{{ item.snmp_client_group_name }}"
+              descr: "{{ item.snmp_client_group_description|default(omit) }}"
+            children:
+              - snmpRsEpg:
+                  attributes:
+                    tDn: "uni/tn-mgmt/mgmtp-default/{{ item.snmp_client_group_mgmt_epg|default('oob-default') }}"
+              - snmpClientP:
+                  attributes:
+                    name: "{{ item.snmp_client_group_client_name|default(omit) }}"
+                    addr: "{{ item.snmp_client_group_client_ip }}"
+      loop: '{{ aci_data.fabric.pod_policy|aci_listify("snmp","client_group","client") }}'
+      when:
+        - item.snmp_name is defined
+        - item.snmp_client_group_name is defined
+        - item.snmp_client_group_client_ip is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Configure Fabric Pod SNMP Policy - Community Policies
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/fabric/snmppol-{{ item.snmp_name }}/community-{{ item.snmp_community_name }}.json
+        method: post
+        content:
+          snmpCommunityP:
+            attributes:
+              name: "{{ item.snmp_community_name }}"
+              descr: "{{ item.snmp_community_description|default(omit) }}"
+      loop: '{{ aci_data.fabric.pod_policy|aci_listify("snmp","community") }}'
+      when:
+        - item.snmp_name is defined
+        - item.snmp_community_name is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Configure Fabric Pod Management Access Policy
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/fabric/comm-{{ item.name }}.json
+        method: post
+        content:
+          commPol:
+            attributes:
+              name: "{{ item.name }}"
+              descr: "{{ item.description|default(omit) }}"
+            children:
+              - commTelnet:
+                  attributes:
+                    adminSt: "{{ item.telnet.state|default(omit) }}"
+                    port: "{{ item.telnet.port|default(omit) }}"
+              - commSsh:
+                  attributes:
+                    adminSt: "{{ item.ssh.state|default(omit) }}"
+                    port: "{{ item.ssh.port|default(omit) }}"
+                    passwordAuth: "{{ item.ssh.password_auth|default(omit) }}"
+                    sshCiphers: "{{ item.ssh.ciphers|join(',')|default(omit) }}"
+                    sshMacs: "{{ item.ssh.macs|join(',')|default(omit) }}"
+              - commShellinabox:
+                  attributes:
+                    adminSt: "{{ item.ssh_web.state|default(omit) }}"
+              - commHttp:
+                  attributes:
+                    adminSt: "{{ item.http.state|default(omit) }}"
+                    port: "{{ item.http.port|default(omit) }}"
+                    redirectSt: "{{ item.http.redirect|default(omit) }}"
+                    accessControlAllowOrigins: "{{ item.http.allow_origins|default(omit) }}"
+                    accessControlAllowCredential: "{{ item.http.allow_credentials|default(omit) }}"
+                    globalThrottleSt: "{{ item.http.throttle|default(omit) }}"
+              - commHttps:
+                  attributes:
+                    adminSt: "{{ item.https.state|default(omit) }}"
+                    port: "{{ item.https.port|default(omit) }}"
+                    accessControlAllowOrigins: "{{ item.https.allow_origins|default(omit) }}"
+                    accessControlAllowCredential: "{{ item.https.allow_credentials|default(omit) }}"
+                    sslProtocols: "{{ item.https.ssl_protocols|join(',')|default(omit) }}"
+                    dhParam: "{{ item.https.dh_param|default(omit) }}"
+                    globalThrottleSt: "{{ item.https.throttle|default(omit) }}"
+                  children:
+                    - commRsKeyRing:
+                        attributes:
+                          tnPkiKeyRingName: "{{ item.https.keyring|default(omit) }}"
+      loop: '{{ aci_data.fabric.pod_policy.management_access }}'
+      when:
+        - item.name is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Configure Fabric Pod Management Access Policy - SSL Cipher Configuration
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/fabric/comm-{{ item.management_access_name }}/https/cph-{{ item.management_access_ssl_ciphers_id }}.json
+        method: post
+        content:
+          commCipher:
+            attributes:
+              dn: "uni/fabric/comm-{{ item.management_access_name }}/https/cph-{{ item.management_access_ssl_ciphers_id }}"
+              id: "{{ item.management_access_ssl_ciphers_id }}"
+              state: "{{ item.management_access_ssl_ciphers_state }}"
+      loop: '{{ aci_data.fabric.pod_policy|aci_listify("management_access","ssl_ciphers") }}'
+      when:
+        - item.management_access_ssl_ciphers_id is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Configure Fabric Pod ISIS Policy
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/fabric/isisDomP-default.json
+        method: post
+        content:
+          isisDomPol:
+            attributes:
+              dn: "uni/fabric/isisDomP-default"
+              mtu: "{{ aci_data.fabric.pod_policy.isis.mtu|default(omit) }}"
+              redistribMetric: "{{ aci_data.fabric.pod_policy.isis.metric|default(omit) }}"
+            children:
+              - isisLvlComp:
+                  attributes:
+                    type: "l1"
+                    lspFastFlood: "{{ aci_data.fabric.pod_policy.isis.lsp_fastflood|default(omit) }}"
+                    lspGenInitIntvl: "{{ aci_data.fabric.pod_policy.isis.lsp_init|default(omit) }}"
+                    lspGenMaxIntvl: "{{ aci_data.fabric.pod_policy.isis.lsp_max|default(omit) }}"
+                    lspGenSecIntvl: "{{ aci_data.fabric.pod_policy.isis.lsp_sec|default(omit) }}"
+                    spfCompInitIntvl: "{{ aci_data.fabric.pod_policy.isis.spf_init|default(omit) }}"
+                    spfCompMaxIntvl: "{{ aci_data.fabric.pod_policy.isis.spf_max|default(omit) }}"
+                    spfCompSecIntvl: "{{ aci_data.fabric.pod_policy.isis.spf_sec|default(omit) }}"
+      when:
+        - aci_data.fabric.pod_policy.isis is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Create Fabric Global DNS Policy
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/fabric/dnsp-{{ item.name }}.json
+        method: post
+        content:
+          dnsProfile:
+            attributes:
+              name: "{{ item.name }}"
+              descr: "{{ item.description|default(omit) }}"
+            children:
+              - dnsRsProfileToEpg:
+                  attributes:
+                    tDn: "uni/tn-mgmt/mgmtp-default/{{ item.management|default(omit) }}"
+      loop: '{{ aci_data.fabric.global_policy.dns }}'
+      when:
+        - item.name is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Create Fabric Global DNS Policy - DNS Providers
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/fabric/dnsp-{{ item.dns_name }}/prov-[{{ item.dns_provider_addr }}].json
+        method: post
+        content:
+          dnsProv:
+            attributes:
+              addr: "{{ item.dns_provider_addr }}"
+              preferred: "{{ item.dns_provider_preferred|default(omit) }}"
+      loop: '{{ aci_data.fabric.global_policy|aci_listify("dns","provider") }}'
+      when:
+        - item.dns_name is defined
+        - item.dns_provider_addr is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Create Fabric Global DNS Policy - DNS Domains
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/fabric/dnsp-{{ item.dns_name }}/dom-[{{ item.dns_domain_name }}].json
+        method: post
+        content:
+          dnsDomain:
+            attributes:
+              name: "{{ item.dns_domain_name }}"
+              descr: "{{ item.dns_domain_description|default(omit) }}"
+              isDefault: "{{ item.dns_domain_default|default(omit) }}"
+      loop: '{{ aci_data.fabric.global_policy|aci_listify("dns","domain") }}'
+      when:
+        - item.dns_name is defined
+        - item.dns_domain_name is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Create Fabric Pod Policy Group
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/fabric/funcprof/podpgrp-{{ item.name }}.json
+        method: post
+        content:
+          fabricPodPGrp:
+            attributes:
+              name: "{{ item.name }}"
+              descr: "{{ item.description|default(omit) }}"
+            children:
+              - fabricRsSnmpPol:
+                  attributes:
+                    tnSnmpPolName: "{{ item.snmp|default(omit) }}"
+              - fabricRsPodPGrpIsisDomP:
+                  attributes:
+                    tnIsisDomPolName: "{{ item.isis|default(omit) }}"
+              - fabricRsPodPGrpCoopP:
+                  attributes:
+                    tnCoopPolName: "{{ item.coop|default(omit) }}"
+              - fabricRsPodPGrpBGPRRP:
+                  attributes:
+                    tnBgpInstPolName: "{{ item.bgp_rr|default(omit) }}"
+              - fabricRsTimePol:
+                  attributes:
+                    tnDatetimePolName: "{{ item.date_time|default(omit) }}"
+              - fabricRsMacsecPol:
+                  attributes:
+                    tnMacsecFabIfPolName: "{{ item.macsec|default(omit) }}"
+              - fabricRsCommPol:
+                  attributes:
+                    tnCommPolName: "{{ item.management_access|default(omit) }}"
+      loop: '{{ aci_data.fabric.pod_policy_group }}'
+      when:
+        - item.name is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed
+
+    - name: Create Fabric Pod Profile
+      cisco.aci.aci_rest:
+        <<: *aci_login
+        path: /api/node/mo/uni/fabric/podprof-{{ item.pod_profile_name }}.json
+        method: post
+        content:
+          fabricPodP:
+            attributes:
+              name: "{{ item.pod_profile_name }}"
+            children:
+              - fabricPodS:
+                  attributes:
+                    name: "{{ item.pod_profile_selector_name }}"
+                    type: "ALL"
+                  children:
+                    - fabricRsPodPGrp:
+                        attributes:
+                          tDn: "uni/fabric/funcprof/podpgrp-{{ item.pod_profile_selector_pod_policy_group }}"
+      loop: '{{ aci_data.fabric|aci_listify("pod_profile","selector") }}'
+      when:
+        - item.pod_profile_name is defined
+        - item.pod_profile_selector_name is defined
+        - item.pod_profile_selector_type == "ALL"
+        - item.pod_profile_selector_pod_policy_group is defined
+      register: result
+      retries: "{{ loop_retries }}"
+      delay: "{{ retry_delay }}"
+      until: result is not failed

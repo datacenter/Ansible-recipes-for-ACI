@@ -1,0 +1,229 @@
+---
+aci_data:
+  system: # System Settings
+    apic_conn_pref: "ooband"
+
+    system_alias_banner:
+      alias: "Ansible-demo"
+      apic_banner: "Welcome to this Ansible-automated fabric"
+      switch_banner: "You are logging into a switch that belongs to an Ansible-automated ACI fabric"
+
+    system_response_time:
+      state: "enabled"
+      resp_threshold: "85000"
+      frequency: "300"
+      top_slow_requests: "5"
+
+    global_aes_encryption:
+      enabled: "yes"
+      passphrase: "Cisco123456789ABCDEF"
+
+    control_plane_mtu: "9000"
+
+    endpoint_control:
+      ep_loop_protection:
+        state: "enabled"
+      rogue_ep_control:
+        state: "enabled"
+        detection_interval: "30"
+        multiplication_factor: "6"
+        hold_interval: "1800"
+      ip_aging:
+        state: "enabled"
+
+    fabric_wide:
+      disable_remote_ep_learn: "yes"
+      enforce_subnet_check: "yes"
+      enforce_epg_vlan_validation: "yes"
+      enforce_domain_validation: "yes"
+      enable_remote_leaf_direct: "no"
+      opflex_client_auth: "no"
+      reallocate_gipo: "yes"
+
+    port_track:
+      state: "on"
+      delay: "120"
+      links: "0"
+
+    system_gipo: "enabled"
+
+    date_time:
+      format: "local"
+      timezone: "p120_Europe-Brussels"
+      offset: "enabled"
+
+    bgp_rr:
+      asn: "65001"
+      rr:
+        - node: "1001"
+          pod: "1" # optional, defaults to 1
+
+    coop_group_policy: "strict"
+
+    load_balancer:
+      dlb: "off"
+      dpp: "on"
+      lb_mode: "traditional"
+      gtp: "no"
+
+    ptp:
+      state: "enabled"
+      resolution: "0"
+
+  fabric: # Fabric policies
+    pod_policy:
+      date_time:
+        - name: "default"
+          description: ""
+          admin_state: "enabled"
+          server_state: "disabled"
+          auth_state: "disabled"
+          ntp:
+            - name: "173.38.201.67"
+              description: "NTP pool"
+              preferred: "yes"
+              min_poll: "4"
+              max_poll: "6"
+              mgmt_epg: "oob-default"
+      snmp:
+        - name: "default"
+          description: ""
+          state: "enabled"
+          contact: ""
+          location: ""
+          community:
+            - name: "public"
+              description: ""
+          client_group:
+            - name: "snmp_client-Ansible"
+              description: ""
+              mgmt_epg: "oob-default"
+              client:
+                - ip: "10.48.168.169"
+                  name: "snmpManager"
+
+      management_access:
+        - name: "default"
+          description: ""
+          telnet:
+            state: "disabled"
+            port: "23"
+          ssh:
+            state: "enabled"
+            password_auth: "enabled"
+            port: "22"
+            ciphers:
+              - "aes128-ctr"
+              - "aes192-ctr"
+              - "aes256-ctr"
+            macs:
+              - "hmac-sha1"
+              - "hmac-sha2-256"
+              - "hmac-sha2-512"
+          ssh_web:
+            state: "disabled"
+          http:
+            state: "disabled"
+            port: "80"
+            redirect: "disabled"
+            allow_origins: "http:\/\/127.0.0.1:8000"
+            allow_credentials: "disabled"
+            throttle: "disabled"
+          https:
+            state: "enabled"
+            port: "443"
+            allow_origins: "http:\/\/127.0.0.1:8000"
+            allow_credentials: "disabled"
+            ssl_protocols:
+              - "TLSv1.2"
+            dh_param: "none"
+            throttle: "disabled"
+            keyring: "default"
+          ssl_ciphers:
+            - id: "3DES"
+              state: "disabled"
+            - id: "aNULL"
+              state: "disabled"
+            - id: "DHE-RSA-AES128-SHA"
+              state: "disabled"
+            - id: "DHE-RSA-AES256-SHA"
+              state: "disabled"
+            - id: "DHE-RSA-CAMELLIA128-SHA"
+              state: "disabled"
+            - id: "DHE-RSA-CAMELLIA256-SHA"
+              state: "disabled"
+            - id: "DHE-RSA-SEED-SHA"
+              state: "disabled"
+            - id: "DSS"
+              state: "disabled"
+            - id: "ECDSA"
+              state: "disabled"
+            - id: "EDH+aRSA"
+              state: "enabled"
+            - id: "EECDH"
+              state: "enabled"
+            - id: "EECDH+aRSA+AESGCM"
+              state: "enabled"
+            - id: "EECDH+aRSA+SHA256"
+              state: "enabled"
+            - id: "EECDH+aRSA+SHA384"
+              state: "enabled"
+            - id: "eNULL"
+              state: "disabled"
+            - id: "EXP"
+              state: "disabled"
+            - id: "EXPORT"
+              state: "disabled"
+            - id: "LOW"
+              state: "disabled"
+            - id: "MD5"
+              state: "disabled"
+            - id: "PSK"
+              state: "disabled"
+            - id: "RC4"
+              state: "disabled"
+            - id: "SRP"
+              state: "disabled"
+      isis:
+        mtu: "1492"
+        metric: "32"
+        lsp_fastflood: "enabled"
+        lsp_init: "50"
+        lsp_max: "8000"
+        lsp_sec: "50"
+        spf_init: "50"
+        spf_max: "8000"
+        spf_sec: "50"
+
+    global_policy:
+      dns:
+        - name: "default"
+          description: ""
+          management: "oob-default"
+          domain:
+            - name: "cisco.com"
+              description: ""
+              default: "yes"
+          provider:
+            - addr: "10.48.168.15"
+              preferred: "yes"
+
+    pod_policy_group:
+      - name: "default"
+        description: ""
+        date_time: "default"
+        isis: "default"
+        coop: "default"
+        bgp_rr: "default"
+        management_access: "default"
+        snmp: "default"
+        macsec: "default"
+
+    pod_profile:
+      - name: "default"
+        description: ""
+        selector:
+          - name: "default"
+            description: ""
+            type: "ALL"
+            pod_policy_group: "default"
