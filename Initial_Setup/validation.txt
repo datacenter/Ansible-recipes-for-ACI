@@ -1,0 +1,173 @@
+
+PLAY [Define essential vars] ***************************************************
+
+TASK [Import ACI vars from file] ***********************************************
+Tuesday 26 July 2022  19:43:46 +0200 (0:00:00.016)       0:00:00.016 ********** 
+ok: [10.48.168.3]
+
+TASK [Configure APIC Connectivity Preferences] *********************************
+Tuesday 26 July 2022  19:43:46 +0200 (0:00:00.027)       0:00:00.044 ********** 
+ok: [10.48.168.3]
+
+TASK [Configure System Alias and Banners] **************************************
+Tuesday 26 July 2022  19:43:47 +0200 (0:00:01.146)       0:00:01.190 ********** 
+ok: [10.48.168.3]
+
+TASK [Configure System Response Time] ******************************************
+Tuesday 26 July 2022  19:43:48 +0200 (0:00:00.772)       0:00:01.963 ********** 
+ok: [10.48.168.3]
+
+TASK [Configure Global AES Passphrase Encryption Settings] *********************
+Tuesday 26 July 2022  19:43:48 +0200 (0:00:00.809)       0:00:02.772 ********** 
+changed: [10.48.168.3]
+
+TASK [Configure Control Plane MTU] *********************************************
+Tuesday 26 July 2022  19:43:49 +0200 (0:00:00.832)       0:00:03.604 ********** 
+ok: [10.48.168.3]
+
+TASK [Configure Endpoint Controls - Endpoint Loop Protection] ******************
+Tuesday 26 July 2022  19:43:50 +0200 (0:00:00.802)       0:00:04.407 ********** 
+ok: [10.48.168.3]
+
+TASK [Configure Endpoint Controls - Rogue Endpoint Control] ********************
+Tuesday 26 July 2022  19:43:51 +0200 (0:00:00.780)       0:00:05.188 ********** 
+ok: [10.48.168.3]
+
+TASK [Configure Endpoint Controls - IP Aging] **********************************
+Tuesday 26 July 2022  19:43:52 +0200 (0:00:00.882)       0:00:06.071 ********** 
+ok: [10.48.168.3]
+
+TASK [Configure Fabric-Wide Settings] ******************************************
+Tuesday 26 July 2022  19:43:52 +0200 (0:00:00.774)       0:00:06.846 ********** 
+changed: [10.48.168.3]
+
+TASK [Configure Port Tracking] *************************************************
+Tuesday 26 July 2022  19:43:53 +0200 (0:00:00.803)       0:00:07.649 ********** 
+ok: [10.48.168.3]
+
+TASK [Configure System GIPo] ***************************************************
+Tuesday 26 July 2022  19:43:54 +0200 (0:00:00.814)       0:00:08.464 ********** 
+ok: [10.48.168.3]
+
+TASK [Configure Date and Time] *************************************************
+Tuesday 26 July 2022  19:43:55 +0200 (0:00:00.803)       0:00:09.267 ********** 
+ok: [10.48.168.3]
+
+TASK [Configure BGP ASN] *******************************************************
+Tuesday 26 July 2022  19:43:56 +0200 (0:00:00.782)       0:00:10.050 ********** 
+ok: [10.48.168.3]
+
+TASK [Configure BGP Route Reflectors] ******************************************
+Tuesday 26 July 2022  19:43:56 +0200 (0:00:00.810)       0:00:10.860 ********** 
+ok: [10.48.168.3] => (item={'node': '1001', 'pod': '1'})
+
+TASK [Configure COOP Group Policy] *********************************************
+Tuesday 26 July 2022  19:43:57 +0200 (0:00:00.811)       0:00:11.671 ********** 
+ok: [10.48.168.3]
+
+TASK [Configure Load Balancer] *************************************************
+Tuesday 26 July 2022  19:43:58 +0200 (0:00:00.772)       0:00:12.444 ********** 
+ok: [10.48.168.3]
+
+TASK [Configure Precision Time Protocol] ***************************************
+Tuesday 26 July 2022  19:43:59 +0200 (0:00:00.814)       0:00:13.259 ********** 
+ok: [10.48.168.3]
+
+TASK [Configure Fabric Pod Date and Time Policy] *******************************
+Tuesday 26 July 2022  19:44:00 +0200 (0:00:00.790)       0:00:14.050 ********** 
+ok: [10.48.168.3] => (item={'date_time_name': 'default', 'date_time_description': '', 'date_time_admin_state': 'enabled', 'date_time_server_state': 'disabled', 'date_time_auth_state': 'disabled'})
+
+TASK [Configure Fabric Pod Date and Time Policy - NTP Servers] *****************
+Tuesday 26 July 2022  19:44:00 +0200 (0:00:00.785)       0:00:14.836 ********** 
+ok: [10.48.168.3] => (item={'date_time_name': 'default', 'date_time_description': '', 'date_time_admin_state': 'enabled', 'date_time_server_state': 'disabled', 'date_time_auth_state': 'disabled', 'date_time_ntp_name': '173.38.201.67', 'date_time_ntp_description': 'NTP pool', 'date_time_ntp_preferred': 'yes', 'date_time_ntp_min_poll': '4', 'date_time_ntp_max_poll': '6', 'date_time_ntp_mgmt_epg': 'oob-default'})
+
+TASK [Configure Fabric Pod SNMP Policy] ****************************************
+Tuesday 26 July 2022  19:44:01 +0200 (0:00:00.822)       0:00:15.658 ********** 
+ok: [10.48.168.3] => (item={'snmp_name': 'default', 'snmp_description': '', 'snmp_state': 'enabled', 'snmp_contact': '', 'snmp_location': ''})
+
+TASK [Configure Fabric Pod SNMP Policy - Client Group Policies] ****************
+Tuesday 26 July 2022  19:44:02 +0200 (0:00:01.107)       0:00:16.766 ********** 
+ok: [10.48.168.3] => (item={'snmp_name': 'default', 'snmp_description': '', 'snmp_state': 'enabled', 'snmp_contact': '', 'snmp_location': '', 'snmp_client_group_name': 'snmp_client-Ansible', 'snmp_client_group_description': '', 'snmp_client_group_mgmt_epg': 'oob-default', 'snmp_client_group_client_ip': '10.48.168.169', 'snmp_client_group_client_name': 'snmpManager'})
+
+TASK [Configure Fabric Pod SNMP Policy - Community Policies] *******************
+Tuesday 26 July 2022  19:44:03 +0200 (0:00:00.873)       0:00:17.639 ********** 
+ok: [10.48.168.3] => (item={'snmp_name': 'default', 'snmp_description': '', 'snmp_state': 'enabled', 'snmp_contact': '', 'snmp_location': '', 'snmp_community_name': 'public', 'snmp_community_description': ''})
+
+TASK [Configure Fabric Pod Management Access Policy] ***************************
+Tuesday 26 July 2022  19:44:04 +0200 (0:00:00.802)       0:00:18.442 ********** 
+ok: [10.48.168.3] => (item={'name': 'default', 'description': '', 'telnet': {'state': 'disabled', 'port': '23'}, 'ssh': {'state': 'enabled', 'password_auth': 'enabled', 'port': '22', 'ciphers': ['aes128-ctr', 'aes192-ctr', 'aes256-ctr'], 'macs': ['hmac-sha1', 'hmac-sha2-256', 'hmac-sha2-512']}, 'ssh_web': {'state': 'disabled'}, 'http': {'state': 'disabled', 'port': '80', 'redirect': 'disabled', 'allow_origins': 'http://127.0.0.1:8000', 'allow_credentials': 'disabled', 'throttle': 'disabled'}, 'https': {'state': 'enabled', 'port': '443', 'allow_origins': 'http://127.0.0.1:8000', 'allow_credentials': 'disabled', 'ssl_protocols': ['TLSv1.2'], 'dh_param': 'none', 'throttle': 'disabled', 'keyring': 'default'}, 'ssl_ciphers': [{'id': '3DES', 'state': 'disabled'}, {'id': 'aNULL', 'state': 'disabled'}, {'id': 'DHE-RSA-AES128-SHA', 'state': 'disabled'}, {'id': 'DHE-RSA-AES256-SHA', 'state': 'disabled'}, {'id': 'DHE-RSA-CAMELLIA128-SHA', 'state': 'disabled'}, {'id': 'DHE-RSA-CAMELLIA256-SHA', 'state': 'disabled'}, {'id': 'DHE-RSA-SEED-SHA', 'state': 'disabled'}, {'id': 'DSS', 'state': 'disabled'}, {'id': 'ECDSA', 'state': 'disabled'}, {'id': 'EDH+aRSA', 'state': 'enabled'}, {'id': 'EECDH', 'state': 'enabled'}, {'id': 'EECDH+aRSA+AESGCM', 'state': 'enabled'}, {'id': 'EECDH+aRSA+SHA256', 'state': 'enabled'}, {'id': 'EECDH+aRSA+SHA384', 'state': 'enabled'}, {'id': 'eNULL', 'state': 'disabled'}, {'id': 'EXP', 'state': 'disabled'}, {'id': 'EXPORT', 'state': 'disabled'}, {'id': 'LOW', 'state': 'disabled'}, {'id': 'MD5', 'state': 'disabled'}, {'id': 'PSK', 'state': 'disabled'}, {'id': 'RC4', 'state': 'disabled'}, {'id': 'SRP', 'state': 'disabled'}]})
+
+TASK [Configure Fabric Pod Management Access Policy - SSL Cipher Configuration] ***
+Tuesday 26 July 2022  19:44:05 +0200 (0:00:00.819)       0:00:19.261 ********** 
+ok: [10.48.168.3] => (item={'management_access_name': 'default', 'management_access_description': '', 'management_access_ssl_ciphers_id': '3DES', 'management_access_ssl_ciphers_state': 'disabled'})
+ok: [10.48.168.3] => (item={'management_access_name': 'default', 'management_access_description': '', 'management_access_ssl_ciphers_id': 'aNULL', 'management_access_ssl_ciphers_state': 'disabled'})
+ok: [10.48.168.3] => (item={'management_access_name': 'default', 'management_access_description': '', 'management_access_ssl_ciphers_id': 'DHE-RSA-AES128-SHA', 'management_access_ssl_ciphers_state': 'disabled'})
+ok: [10.48.168.3] => (item={'management_access_name': 'default', 'management_access_description': '', 'management_access_ssl_ciphers_id': 'DHE-RSA-AES256-SHA', 'management_access_ssl_ciphers_state': 'disabled'})
+ok: [10.48.168.3] => (item={'management_access_name': 'default', 'management_access_description': '', 'management_access_ssl_ciphers_id': 'DHE-RSA-CAMELLIA128-SHA', 'management_access_ssl_ciphers_state': 'disabled'})
+ok: [10.48.168.3] => (item={'management_access_name': 'default', 'management_access_description': '', 'management_access_ssl_ciphers_id': 'DHE-RSA-CAMELLIA256-SHA', 'management_access_ssl_ciphers_state': 'disabled'})
+ok: [10.48.168.3] => (item={'management_access_name': 'default', 'management_access_description': '', 'management_access_ssl_ciphers_id': 'DHE-RSA-SEED-SHA', 'management_access_ssl_ciphers_state': 'disabled'})
+ok: [10.48.168.3] => (item={'management_access_name': 'default', 'management_access_description': '', 'management_access_ssl_ciphers_id': 'DSS', 'management_access_ssl_ciphers_state': 'disabled'})
+ok: [10.48.168.3] => (item={'management_access_name': 'default', 'management_access_description': '', 'management_access_ssl_ciphers_id': 'ECDSA', 'management_access_ssl_ciphers_state': 'disabled'})
+ok: [10.48.168.3] => (item={'management_access_name': 'default', 'management_access_description': '', 'management_access_ssl_ciphers_id': 'EDH+aRSA', 'management_access_ssl_ciphers_state': 'enabled'})
+ok: [10.48.168.3] => (item={'management_access_name': 'default', 'management_access_description': '', 'management_access_ssl_ciphers_id': 'EECDH', 'management_access_ssl_ciphers_state': 'enabled'})
+ok: [10.48.168.3] => (item={'management_access_name': 'default', 'management_access_description': '', 'management_access_ssl_ciphers_id': 'EECDH+aRSA+AESGCM', 'management_access_ssl_ciphers_state': 'enabled'})
+ok: [10.48.168.3] => (item={'management_access_name': 'default', 'management_access_description': '', 'management_access_ssl_ciphers_id': 'EECDH+aRSA+SHA256', 'management_access_ssl_ciphers_state': 'enabled'})
+ok: [10.48.168.3] => (item={'management_access_name': 'default', 'management_access_description': '', 'management_access_ssl_ciphers_id': 'EECDH+aRSA+SHA384', 'management_access_ssl_ciphers_state': 'enabled'})
+ok: [10.48.168.3] => (item={'management_access_name': 'default', 'management_access_description': '', 'management_access_ssl_ciphers_id': 'eNULL', 'management_access_ssl_ciphers_state': 'disabled'})
+ok: [10.48.168.3] => (item={'management_access_name': 'default', 'management_access_description': '', 'management_access_ssl_ciphers_id': 'EXP', 'management_access_ssl_ciphers_state': 'disabled'})
+ok: [10.48.168.3] => (item={'management_access_name': 'default', 'management_access_description': '', 'management_access_ssl_ciphers_id': 'EXPORT', 'management_access_ssl_ciphers_state': 'disabled'})
+ok: [10.48.168.3] => (item={'management_access_name': 'default', 'management_access_description': '', 'management_access_ssl_ciphers_id': 'LOW', 'management_access_ssl_ciphers_state': 'disabled'})
+ok: [10.48.168.3] => (item={'management_access_name': 'default', 'management_access_description': '', 'management_access_ssl_ciphers_id': 'MD5', 'management_access_ssl_ciphers_state': 'disabled'})
+ok: [10.48.168.3] => (item={'management_access_name': 'default', 'management_access_description': '', 'management_access_ssl_ciphers_id': 'PSK', 'management_access_ssl_ciphers_state': 'disabled'})
+ok: [10.48.168.3] => (item={'management_access_name': 'default', 'management_access_description': '', 'management_access_ssl_ciphers_id': 'RC4', 'management_access_ssl_ciphers_state': 'disabled'})
+ok: [10.48.168.3] => (item={'management_access_name': 'default', 'management_access_description': '', 'management_access_ssl_ciphers_id': 'SRP', 'management_access_ssl_ciphers_state': 'disabled'})
+
+TASK [Configure Fabric Pod ISIS Policy] ****************************************
+Tuesday 26 July 2022  19:44:24 +0200 (0:00:19.590)       0:00:38.852 ********** 
+ok: [10.48.168.3]
+
+TASK [Create Fabric Global DNS Policy] *****************************************
+Tuesday 26 July 2022  19:44:25 +0200 (0:00:00.809)       0:00:39.662 ********** 
+ok: [10.48.168.3] => (item={'name': 'default', 'description': '', 'management': 'oob-default', 'domain': [{'name': 'cisco.com', 'description': '', 'default': 'yes'}], 'provider': [{'addr': '10.48.168.15', 'preferred': 'yes'}]})
+
+TASK [Create Fabric Global DNS Policy - DNS Providers] *************************
+Tuesday 26 July 2022  19:44:26 +0200 (0:00:00.797)       0:00:40.459 ********** 
+ok: [10.48.168.3] => (item={'dns_name': 'default', 'dns_description': '', 'dns_management': 'oob-default', 'dns_provider_addr': '10.48.168.15', 'dns_provider_preferred': 'yes'})
+
+TASK [Create Fabric Global DNS Policy - DNS Domains] ***************************
+Tuesday 26 July 2022  19:44:27 +0200 (0:00:00.807)       0:00:41.267 ********** 
+ok: [10.48.168.3] => (item={'dns_name': 'default', 'dns_description': '', 'dns_management': 'oob-default', 'dns_domain_name': 'cisco.com', 'dns_domain_description': '', 'dns_domain_default': 'yes'})
+
+TASK [Create Fabric Pod Policy Group] ******************************************
+Tuesday 26 July 2022  19:44:28 +0200 (0:00:00.834)       0:00:42.101 ********** 
+ok: [10.48.168.3] => (item={'name': 'default', 'description': '', 'date_time': 'default', 'isis': 'default', 'coop': 'default', 'bgp_rr': 'default', 'management_access': 'default', 'snmp': 'default', 'macsec': 'default'})
+
+TASK [Create Fabric Pod Profile] ***********************************************
+Tuesday 26 July 2022  19:44:30 +0200 (0:00:01.875)       0:00:43.977 ********** 
+ok: [10.48.168.3] => (item={'pod_profile_name': 'default', 'pod_profile_description': '', 'pod_profile_selector_name': 'default', 'pod_profile_selector_description': '', 'pod_profile_selector_type': 'ALL', 'pod_profile_selector_pod_policy_group': 'default'})
+
+PLAY RECAP *********************************************************************
+10.48.168.3                : ok=31   changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+Tuesday 26 July 2022  19:44:30 +0200 (0:00:00.809)       0:00:44.786 ********** 
+=============================================================================== 
+Configure Fabric Pod Management Access Policy - SSL Cipher Configuration -- 19.59s
+Create Fabric Pod Policy Group ------------------------------------------ 1.88s
+Configure APIC Connectivity Preferences --------------------------------- 1.15s
+Configure Fabric Pod SNMP Policy ---------------------------------------- 1.11s
+Configure Endpoint Controls - Rogue Endpoint Control -------------------- 0.88s
+Configure Fabric Pod SNMP Policy - Client Group Policies ---------------- 0.87s
+Create Fabric Global DNS Policy - DNS Domains --------------------------- 0.83s
+Configure Global AES Passphrase Encryption Settings --------------------- 0.83s
+Configure Fabric Pod Date and Time Policy - NTP Servers ----------------- 0.82s
+Configure Fabric Pod Management Access Policy --------------------------- 0.82s
+Configure Load Balancer ------------------------------------------------- 0.81s
+Configure Port Tracking ------------------------------------------------- 0.81s
+Configure BGP Route Reflectors ------------------------------------------ 0.81s
+Configure BGP ASN ------------------------------------------------------- 0.81s
+Configure Fabric Pod ISIS Policy ---------------------------------------- 0.81s
+Configure System Response Time ------------------------------------------ 0.81s
+Create Fabric Pod Profile ----------------------------------------------- 0.81s
+Create Fabric Global DNS Policy - DNS Providers ------------------------- 0.81s
+Configure System GIPo --------------------------------------------------- 0.80s
+Configure Fabric-Wide Settings ------------------------------------------ 0.80s
