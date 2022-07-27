@@ -38,7 +38,6 @@
         epg: default
         pod_id: "{{ item.pod_id }}"
         type: out_of_band
-        #band_type: out_of_band
         node_id: "{{ item.node_id }}"
         ipv4_address: "{{ item.ipv4_addr }}"
         ipv4_gw: "{{ item.ipv4_gw }}"
