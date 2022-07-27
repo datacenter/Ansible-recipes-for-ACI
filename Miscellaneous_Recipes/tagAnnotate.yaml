@@ -4,7 +4,7 @@
   vars:
   tasks:
   - name: tag a tenant with one tagAnnotation key-value pair
-    aci_rest:
+    cisco.aci.aci_rest:
       hostname: '{{ inventory_hostname }}'
       username: '{{ apic_username }}'
       password: '{{ apic_password }}'
