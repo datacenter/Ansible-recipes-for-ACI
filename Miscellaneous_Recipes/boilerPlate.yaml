@@ -20,4 +20,11 @@
       register: tenants
 
     - name: Parse JSON output and display results
-      debug: msg="{{ tenants | json_query('current[*].fvTenant.attributes.name') }}"
+      vars:
+        tenant_list: "{{ tenants | json_query('current[*].fvTenant.attributes.name') }}"
+      debug:
+        msg: |
+          [
+            "There are {{ tenant_list | length }} tenants in this fabric",
+            "{{ tenant_list }}"
+          ]
