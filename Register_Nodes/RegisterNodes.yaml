@@ -18,8 +18,8 @@
         path: aci_nodes.csv
       register: nodes
 
-    - name: "task: aci_fabric_node"
-      aci_fabric_node:
+    - name: "Register leaf and spine nodes"
+      cisco.aci.aci_fabric_node:
         <<: *aci_login
         state: "{{ item.state }}"
         timeout: 5
@@ -30,4 +30,22 @@
       loop: '{{ nodes.list }}' 
       loop_control:
         pause: 1
+      delegate_to: localhost
+
+    - name: "Assign OOB addresses to nodes"
+      cisco.aci.aci_static_node_mgmt_address:
+        <<: *aci_login
+        epg: default
+        pod_id: "{{ item.pod_id }}"
+        type: out_of_band
+        #band_type: out_of_band
+        node_id: "{{ item.node_id }}"
+        ipv4_address: "{{ item.ipv4_addr }}"
+        ipv4_gw: "{{ item.ipv4_gw }}"
+      loop: '{{ nodes.list }}'
+      loop_control:
+        pause: 1
+      when:
+         - item.ipv4_addr != ""
+         - item.ipv4_gw != ""
       delegate_to: localhost

@@ -1,4 +1,7 @@
-switch,node_id,serial,pod_id,state
-leaf-111,111,SNCSCO0111,1,present
-leaf-112,112,SNCSCO0112,1,present
-spine-1111,1111,SNCSCO1111,1,present
+switch,node_id,serial,pod_id,state,ipv4_addr,ipv4_gw
+leaf-111,111,SNCSCO0111,1,present,10.1.1.111/24,10.1.1.1
+leaf-112,112,SNCSCO0112,1,present,10.1.1.112/24,10.1.1.1
+spine-1111,1111,SNCSCO1111,1,present,10.1.1.211/24,10.1.1.1
+spine-1112,1112,SNCSCO1112,1,present,,
+spine-1113,1113,SNCSCO1113,1,present,10.1.1.213/24,10.1.1.1
+
