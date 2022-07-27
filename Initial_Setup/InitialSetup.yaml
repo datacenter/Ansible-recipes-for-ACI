@@ -1,5 +1,5 @@
 ---
-- name: Define essential vars
+- name: Perform routine ACI configuration tasks
   hosts: aci
   gather_facts: no
   connection: local
