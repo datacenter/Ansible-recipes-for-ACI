@@ -1,0 +1,21 @@
+---
+- name: set logging to information level
+  hosts: aci
+  connection: local
+  vars:
+    log_level: "information"
+  tasks:
+  - name: Configure global logging level
+    cisco.aci.aci_rest:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ apic_username }}'
+      password: '{{ apic_password }}'
+      validate_certs: '{{ apic_validate_certs }}'
+      use_proxy: '{{ apic_use_proxy }}'
+      path: /api/node/mo/uni/fabric/moncommon/sysmsgp/ff-default.json
+      method: post
+      content: 
+        {"syslogFacilityFilter":{"attributes":{"dn":"uni/fabric/moncommon/sysmsgp/ff-default",
+                                               "minSev": '{{ log_level }}'},"children":[]}}
+    delegate_to: localhost
+
