@@ -1,0 +1,43 @@
+---
+- name: Extend the default UI timeout
+  hosts: aci
+  connection: local
+  vars:
+    ui_timeout:       "3600"
+    webtoken_timeout: "9600"
+  tasks:
+  - name: Extend UI timeout
+    aci_rest:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ apic_username }}'
+      password: '{{ apic_password }}'
+      validate_certs: '{{ apic_validate_certs }}'
+      use_proxy: '{{ apic_use_proxy }}'
+      path: /api/node/mo/uni/userext.json
+      method: post
+      #
+      ## note: password strength check is disabled here
+      ##       this is not recommended for production environments
+      #
+      content:
+        {"aaaUserEp":
+          {"attributes":{"pwdStrengthCheck":"no"},
+           "children":[
+             {"pkiEp":
+               {"attributes":
+                 {"status":"created,modified"},
+                  "children":[
+                    {"pkiWebTokenData":
+                      {"attributes":
+                        {"status":"created,modified",
+                         "webtokenTimeoutSeconds": '{{ webtoken_timeout }}',
+                         "maximumValidityPeriod":"24",
+                         "uiIdleTimeoutSeconds": '{{ ui_timeout }}',
+                         "sessionRecordFlags":"login,logout"},"children":[]
+                      }
+                    }]
+                }
+              }]
+           }
+         }
+    delegate_to: localhost
