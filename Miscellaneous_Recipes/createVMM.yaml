@@ -1,0 +1,110 @@
+---
+- name: Create VMware VMM domain
+  hosts: aci
+  connection: local
+  gather_facts: no
+  vars:
+    vmm_name:         vcenter7
+    vmm_vcenter_name: vcenter_lab
+    vmm_vcenter_ip:   10.48.168.205
+    vmm_dc:           QA
+    vmm_pool:         vcenter7pool
+    vmm_creds:        ansible
+    vmm_user:         ansible@vsphere.local
+    vmm_pwd:          cisco123
+    vmm_aaep:         vmmaaep
+    vmm_vlan_block:   vmmblock
+    vmm_start_vlan:   3000
+    vmm_end_vlan:     3200
+    aci_login: &aci_login
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ apic_username }}'
+      password: '{{ apic_password }}'
+      use_proxy: '{{ apic_use_proxy }}'
+      validate_certs: '{{ apic_validate_certs }}'
+    my_state: present
+
+  tasks:
+  - name: create vmm domain
+    cisco.aci.aci_domain:
+      <<: *aci_login
+      domain: '{{ vmm_name }}'
+      domain_type: vmm
+      vm_provider: vmware
+      state: '{{ my_state }}'
+    delegate_to: localhost
+
+  - name: add vmm creds
+    cisco.aci.aci_vmm_credential:
+      <<: *aci_login
+      domain: '{{ vmm_name }}'
+      description: "admin creds"
+      name: '{{ vmm_creds }}'
+      credential_username: '{{ vmm_user }}'
+      credential_password: '{{ vmm_pwd }}'
+      vm_provider: vmware
+      state: '{{ my_state }}'
+    delegate_to: localhost
+
+  - name: create vlan pool
+    cisco.aci.aci_vlan_pool:
+      <<: *aci_login
+      pool: '{{ vmm_pool }}'
+      pool_allocation_mode: dynamic
+      description: "pool for vmm"
+      state: '{{ my_state }}'
+    delegate_to: localhost
+
+  - name: create encap pool
+    cisco.aci.aci_encap_pool:
+      <<: *aci_login
+      pool: '{{ vmm_pool }}'
+      pool_type: vlan
+      pool_allocation_mode: dynamic
+      description: "vmm pool"
+      state: '{{ my_state }}'
+    delegate_to: localhost
+
+  - name: add vlans to pool
+    cisco.aci.aci_vlan_pool_encap_block:
+      <<: *aci_login
+      pool: '{{ vmm_pool }}'
+      block_start: '{{ vmm_start_vlan }}'
+      block_end: '{{ vmm_end_vlan }}'
+      block_name: '{{ vmm_vlan_block }}'
+      pool_allocation_mode: dynamic
+      state: '{{ my_state }}'
+    delegate_to: localhost
+
+  - name: bind vmm to vlan pool
+    cisco.aci.aci_domain_to_vlan_pool:
+      <<: *aci_login
+      domain: '{{ vmm_name }}'
+      domain_type: vmm
+      pool: '{{ vmm_pool }}'
+      pool_allocation_mode: dynamic
+      vm_provider: vmware
+      state: '{{ my_state }}'
+    delegate_to: localhost
+
+  - name: bind domain to AAEP
+    cisco.aci.aci_aep_to_domain:
+      <<: *aci_login
+      aep: '{{ vmm_aaep }}'
+      domain: '{{ vmm_name }}'
+      domain_type: vmm
+      state: '{{ my_state }}'
+      vm_provider: vmware 
+    delegate_to: localhost
+
+  - name: create VMM controller
+    cisco.aci.aci_vmm_controller:
+      <<: *aci_login
+      domain: '{{ vmm_name }}'
+      name: '{{ vmm_vcenter_name }}'
+      controller_hostname: '{{ vmm_vcenter_ip }}'
+      dvs_version: unmanaged
+      vm_provider: vmware
+      credentials: '{{ vmm_creds }}'
+      datacenter: '{{ vmm_dc }}'
+      state: '{{ my_state }}'

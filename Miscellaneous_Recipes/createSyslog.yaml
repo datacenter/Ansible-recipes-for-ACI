@@ -1,0 +1,47 @@
+---
+- hosts: aci
+  connection: local
+  vars:
+    syslog_ip:      "10.48.168.169"
+    syslog_name:    "syslog_lab"
+    syslog_sev:     "information"
+    aci_creds: &aci_login
+      hostname:       '{{ inventory_hostname }}'
+      username:       '{{ apic_username }}'
+      password:       '{{ apic_password }}'
+      validate_certs: '{{ apic_validate_certs }}'
+      use_proxy:      '{{ apic_use_proxy }}'
+ 
+  tasks:
+  - name: Create SYSLOG server
+    aci_rest:
+      <<: *aci_login
+      path: /api/node/mo/uni/fabric/slgroup-{{syslog_name}}.json
+      method: post
+      content: 
+        {"syslogGroup":{"attributes":{"dn":"uni/fabric/slgroup-{{syslog_name}}","name":"{{syslog_name}}","rn":"slgroup-{{syslog_name}}","status":"created"},
+         "children":[
+                       {"syslogConsole":
+                         {"attributes":{"dn":"uni/fabric/slgroup-{{syslog_name}}/console","rn":"console","status":"created"},"children":[]}},
+                         {"syslogFile":
+                           {"attributes":
+                             {"dn":"uni/fabric/slgroup-{{syslog_name}}/file","rn":"file","status":"created"},"children":[]}},
+                             {"syslogProf":
+                               {"attributes":
+                                 {"dn":"uni/fabric/slgroup-{{syslog_name}}/prof","rn":"prof","status":"created"},"children":[]}},
+                                 {"syslogRemoteDest":
+                                   {"attributes":
+                                     {"dn":"uni/fabric/slgroup-{{syslog_name}}/rdst-{{syslog_ip}}",
+                                      "host":"{{ syslog_ip }}",
+                                      "name":"{{ syslog_name }}",
+                                      "severity":"{{ syslog_sev }}",
+                                      "rn":"rdst-{{ syslog_ip }}",
+                                      "status":"created"},
+                                      "children":[]
+                                     }
+                                   }
+                                 ]
+                               }
+                             }
+    delegate_to: localhost
+

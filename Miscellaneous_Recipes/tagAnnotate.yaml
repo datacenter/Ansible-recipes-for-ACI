@@ -1,0 +1,18 @@
+---
+- hosts: aci
+  connection: local
+  vars:
+  tasks:
+  - name: tag a tenant with one tagAnnotation key-value pair
+    aci_rest:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ apic_username }}'
+      password: '{{ apic_password }}'
+      validate_certs: '{{ apic_validate_certs }}'
+      use_proxy: '{{ apic_use_proxy }}'
+      path: api/node/mo/uni/tn-kubernetes.json
+      method: post
+      content: 
+        {"tagAnnotation":{"attributes":{"key":"orchestrator","value":"ansible"},"children":[]}} 
+    delegate_to: localhost
+

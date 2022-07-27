@@ -1,0 +1,43 @@
+---
+- hosts: aci
+  connection: local
+  vars:
+    aci_login: &aci_login
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ apic_username }}'
+      password: '{{ apic_password }}'
+      validate_certs: '{{ apic_validate_certs }}'
+      use_proxy: '{{ apic_use_proxy }}'
+
+  tasks:
+  - name: relax password checks - do so with caution!
+    cisco.aci.aci_rest:
+      <<: *aci_login
+      method: post
+      path: /api/node/mo/uni/userext.json
+      content: {"aaaUserEp":{"attributes":{"dn":"uni/userext","pwdStrengthCheck":"no"},"children":[]}}
+
+  - name: Add a super user for future ansible tasks
+    cisco.aci.aci_rest:
+      <<: *aci_login
+      path: /api/policymgr/mo/uni/userext.xml
+      method: post
+      content:
+            <aaaUser name="ansible" phone="" pwd="cisco">
+              <aaaUserDomain childAction="" descr="" name="all" rn="userdomain-all" status="">
+                <aaaUserRole childAction="" descr="" name="admin" privType="writePriv"/>
+              </aaaUserDomain>
+            </aaaUser>
+    delegate_to: localhost
+
+  - name: push client cert to user
+    cisco.aci.aci_aaa_user_certificate:
+      <<: *aci_login
+      aaa_user: ansible
+      certificate_name: ansible
+      certificate: "{{ lookup('file', 'ansible.crt') }}"
+    register: this
+    until: this is successful
+    retries: 20
+    delay: 10
+
