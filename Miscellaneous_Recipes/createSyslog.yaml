@@ -14,7 +14,7 @@
  
   tasks:
   - name: Create SYSLOG server
-    aci_rest:
+    cisco.aci.aci_rest:
       <<: *aci_login
       path: /api/node/mo/uni/fabric/slgroup-{{syslog_name}}.json
       method: post
