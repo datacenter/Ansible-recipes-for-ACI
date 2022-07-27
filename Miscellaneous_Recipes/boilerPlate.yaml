@@ -1,0 +1,23 @@
+---
+- name: boilerplate code for ACI
+  hosts: aci
+  gather_facts: no
+  connection: local
+  vars:
+    aci_creds: &aci_login
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ apic_username }}'
+      password: '{{ apic_password }}'
+      validate_certs: '{{ apic_validate_certs }}'
+      use_proxy: '{{ apic_use_proxy }}'
+  
+  tasks:
+    - name: Query all tenants
+      cisco.aci.aci_tenant:
+        <<: *aci_login
+        state: query
+      delegate_to: localhost
+      register: tenants
+
+    - name: Parse JSON output and display results
+      debug: msg="{{ tenants | json_query('current[*].fvTenant.attributes.name') }}"
