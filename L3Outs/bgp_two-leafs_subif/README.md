@@ -1,6 +1,6 @@
 ## Usage
 ```
-ansible-playbook bgp_with_loop.yaml -i inventory.yaml
+ansible-playbook bgp_two-leafs_subif.yaml -i inventory.yaml
 ```
 
 
