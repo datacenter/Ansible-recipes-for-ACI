@@ -1,0 +1,111 @@
+# this playbook uses the aci_bulk_static_binding_to_epg module available in the 2.3.0 aci collection
+# the module constucts a REST payload that it pushes to APIC in one go
+# the result is dramatically improved performance when creating many static bindings
+# in this playbok, we read bindings data from a CSV file and prebuild a list of dictionaries in memory
+# that we then pass to the Ansible aci_bulk_static_binding_to_epg module
+#
+# note: this playbook requires you to enable Jinja2's do extension
+#       edit your ansible.cfg file and add jinja2.ext.do
+---
+- name: Deploy Static ports on leafs using bulk push
+  hosts: aci
+  connection: local
+  gather_facts: false
+
+  vars:
+    aci_info: &aci_login
+      hostname: '{{ inventory_hostname }}'
+      username: ansible
+      use_proxy: no
+      use_ssl: yes
+      private_key: ansible.key
+      validate_certs: no
+    tenant:
+      name: 'staticPathsCSV'
+      state: 'present'
+      vrf:
+        name: 'main'
+      bd:
+        name: 'one'
+        gw: '192.168.1.1'
+        mask: 24
+      ap:
+        name: 'app'
+      epgs:
+        - {name: 'epg1', descr: 'epg one', bd: 'one', ap: 'app'}
+  
+  tasks:
+  - name: Add a tenant using aci_tenant
+    aci_tenant:
+      <<: *aci_login
+      tenant: '{{ tenant.name }}'
+      state: '{{ tenant.state }}'
+
+  - name: CREATE ACI TENANT VRF
+    aci_vrf:
+      <<: *aci_login
+      vrf: '{{ tenant.vrf.name }}'
+      tenant: '{{ tenant.name }}'
+
+  - name: Create BD
+    aci_bd:
+      <<: *aci_login
+      bd: '{{ tenant.bd.name }}'
+      tenant: '{{ tenant.name }}'
+      vrf: '{{ tenant.vrf.name }}'
+
+  - name: CREATE ACI TENANT BD SUBNET
+    aci_bd_subnet:
+      <<: *aci_login
+      tenant: '{{ tenant.name }}'
+      bd: '{{ tenant.bd.name }}'
+      gateway: '{{ tenant.bd.gw }}'
+      mask: '{{ tenant.bd.mask }}'
+
+  - name: CREATE ACI TENANT APP PROFILE
+    aci_ap:
+      <<: *aci_login
+      ap: '{{ tenant.ap.name }}'
+      tenant: '{{ tenant.name }}'
+
+  - name: CREATE ACI TENANT APP PROFILE EPG
+    aci_epg:
+      <<: *aci_login
+      tenant: '{{ tenant.name }}'
+      ap: '{{ item.ap }}'
+      epg: '{{ item.name }}'
+      bd: '{{ item.bd }}'
+    with_items:
+      - '{{ tenant.epgs }}'  
+
+  - name: Read data from CSV file to be used to configure ACI
+    community.general.read_csv:
+      path: ports.csv
+    register: ports
+    delegate_to: localhost
+
+  - name: Build static bindings construct
+    # encap_id,deploy,int_mode,int_type,pod_id,leaf,int
+    set_fact:
+      blob: >-
+          {%- set blob = [] -%}
+          {%- for binding in ports.list -%}
+            {%- set interface = binding.int -%}
+            {%- set leafs = binding.leaf -%}
+            {%- set pod = binding.pod_id -%}
+            {%- set interface_mode = binding.int_mode -%}
+            {%- set interface_type = binding.int_type -%}
+            {%- set encap_id = binding.encap_id -%}
+            {%- set deploy_immediacy = binding.deploy -%}
+            {%- set config = { "interface": interface, "leafs": leafs, "pod": pod, "interface_mode": interface_mode, "encap_id": encap_id, "deploy_immediacy": deploy_immediacy } -%}
+            {%- do blob.append(config) -%}
+          {%- endfor -%}
+          {{ blob }}
+
+  - name: deploy static path bindings for an EPG
+    cisco.aci.aci_bulk_static_binding_to_epg:
+      <<: *aci_login
+      tenant: '{{ tenant.name }}'
+      ap: '{{ tenant.ap.name }}'
+      epg: '{{ tenant.epgs[0].name }}'
+      interface_configs: '{{ blob }}'
