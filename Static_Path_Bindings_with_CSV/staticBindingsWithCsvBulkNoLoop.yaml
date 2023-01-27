@@ -18,10 +18,11 @@
       username: ansible
       use_proxy: no
       use_ssl: yes
+      # login using X.509 certificate + key; feel free to replace by password authN
       private_key: ansible.key
       validate_certs: no
     tenant:
-      name: 'staticPathsCSV'
+      name: 'Demo'
       state: 'present'
       vrf:
         name: 'main'
@@ -30,9 +31,9 @@
         gw: '192.168.1.1'
         mask: 24
       ap:
-        name: 'app'
+        name: 'ap1'
       epgs:
-        - {name: 'epg1', descr: 'epg one', bd: 'one', ap: 'app'}
+        - {name: 'epg1', descr: 'epg one', bd: 'one', ap: 'ap1'}
   
   tasks:
   - name: Add a tenant using aci_tenant
