@@ -15,10 +15,10 @@ What you need:
 
 Just run the playbook after adapting it for your Ansible inventory and desired AAEP/EPG bindings.
 
-## _Notes__
+## _Notes_
 
 The template is fairly generic meaning you can adapt it to a variety of use cases. As long as structure your data in a way that the template can process,
-you can create virtually any kind of bulk operation against ACI while realizing a significant performance improvement. The drawback is that code readability is sacrificed because all logic has now moved into a large JSON blob.
+you can create virtually any kind of bulk operation against ACI while realizing a significant performance improvement. The drawback is that code readability is sacrificed because all logic has now moved into a large JSON blob. Note that there is no good reason for not using aci_rest here; the author deliberately opted for the built-in URI module just to show how to use APIC's REST API "natively" (that is, without ACI collection modules).
 
 ## _Disclaimer and license_
 
