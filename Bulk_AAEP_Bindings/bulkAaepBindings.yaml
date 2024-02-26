@@ -1,0 +1,254 @@
+---
+- hosts: dot3
+  connection: local
+  gather_facts: no
+
+  vars:
+    template_file: './bulkAaepBindingsTemplate.j2'
+    output_file: './bulkAaepBindingsRendered.json'
+    aaep_dn: "uni/infra/attentp-A"  
+    aaep_name: "A"
+    url: "/api/node/mo/uni/infra/attentp-A.json"
+    epgs:
+      - { encap: "vlan-100", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg1", mode: "regular" }
+      - { encap: "vlan-101", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg2", mode: "regular" }
+      - { encap: "vlan-102", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg3", mode: "regular" }
+      - { encap: "vlan-103", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg4", mode: "regular" }
+      - { encap: "vlan-104", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg5", mode: "regular" }
+      - { encap: "vlan-105", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg6", mode: "regular" }
+      - { encap: "vlan-106", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg7", mode: "regular" }
+      - { encap: "vlan-107", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg8", mode: "regular" }
+      - { encap: "vlan-108", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg9", mode: "regular" }
+      - { encap: "vlan-109", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg10", mode: "regular" }
+      - { encap: "vlan-110", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg11", mode: "regular" }
+      - { encap: "vlan-111", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg12", mode: "regular" }
+      - { encap: "vlan-112", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg13", mode: "regular" }
+      - { encap: "vlan-113", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg14", mode: "regular" }
+      - { encap: "vlan-114", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg15", mode: "regular" }
+      - { encap: "vlan-115", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg16", mode: "regular" }
+      - { encap: "vlan-116", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg17", mode: "regular" }
+      - { encap: "vlan-117", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg18", mode: "regular" }
+      - { encap: "vlan-118", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg19", mode: "regular" }
+      - { encap: "vlan-119", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg20", mode: "regular" }
+      - { encap: "vlan-120", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg21", mode: "regular" }
+      - { encap: "vlan-121", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg22", mode: "regular" }
+      - { encap: "vlan-122", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg23", mode: "regular" }
+      - { encap: "vlan-123", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg24", mode: "regular" }
+      - { encap: "vlan-124", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg25", mode: "regular" }
+      - { encap: "vlan-125", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg26", mode: "regular" }
+      - { encap: "vlan-126", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg27", mode: "regular" }
+      - { encap: "vlan-127", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg28", mode: "regular" }
+      - { encap: "vlan-128", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg29", mode: "regular" }
+      - { encap: "vlan-129", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg30", mode: "regular" }
+      - { encap: "vlan-130", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg31", mode: "regular" }
+      - { encap: "vlan-131", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg32", mode: "regular" }
+      - { encap: "vlan-132", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg33", mode: "regular" }
+      - { encap: "vlan-133", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg34", mode: "regular" }
+      - { encap: "vlan-134", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg35", mode: "regular" }
+      - { encap: "vlan-135", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg36", mode: "regular" }
+      - { encap: "vlan-136", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg37", mode: "regular" }
+      - { encap: "vlan-137", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg38", mode: "regular" }
+      - { encap: "vlan-138", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg39", mode: "regular" }
+      - { encap: "vlan-139", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg40", mode: "regular" }
+      - { encap: "vlan-140", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg41", mode: "regular" }
+      - { encap: "vlan-141", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg42", mode: "regular" }
+      - { encap: "vlan-142", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg43", mode: "regular" }
+      - { encap: "vlan-143", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg44", mode: "regular" }
+      - { encap: "vlan-144", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg45", mode: "regular" }
+      - { encap: "vlan-145", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg46", mode: "regular" }
+      - { encap: "vlan-146", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg47", mode: "regular" }
+      - { encap: "vlan-147", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg48", mode: "regular" }
+      - { encap: "vlan-148", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg49", mode: "regular" }
+      - { encap: "vlan-149", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg50", mode: "regular" }
+      - { encap: "vlan-150", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg51", mode: "regular" }
+      - { encap: "vlan-151", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg52", mode: "regular" }
+      - { encap: "vlan-152", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg53", mode: "regular" }
+      - { encap: "vlan-153", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg54", mode: "regular" }
+      - { encap: "vlan-154", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg55", mode: "regular" }
+      - { encap: "vlan-155", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg56", mode: "regular" }
+      - { encap: "vlan-156", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg57", mode: "regular" }
+      - { encap: "vlan-157", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg58", mode: "regular" }
+      - { encap: "vlan-158", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg59", mode: "regular" }
+      - { encap: "vlan-159", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg60", mode: "regular" }
+      - { encap: "vlan-160", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg61", mode: "regular" }
+      - { encap: "vlan-161", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg62", mode: "regular" }
+      - { encap: "vlan-162", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg63", mode: "regular" }
+      - { encap: "vlan-163", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg64", mode: "regular" }
+      - { encap: "vlan-164", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg65", mode: "regular" }
+      - { encap: "vlan-165", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg66", mode: "regular" }
+      - { encap: "vlan-166", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg67", mode: "regular" }
+      - { encap: "vlan-167", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg68", mode: "regular" }
+      - { encap: "vlan-168", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg69", mode: "regular" }
+      - { encap: "vlan-169", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg70", mode: "regular" }
+      - { encap: "vlan-170", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg71", mode: "regular" }
+      - { encap: "vlan-171", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg72", mode: "regular" }
+      - { encap: "vlan-172", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg73", mode: "regular" }
+      - { encap: "vlan-173", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg74", mode: "regular" }
+      - { encap: "vlan-174", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg75", mode: "regular" }
+      - { encap: "vlan-175", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg76", mode: "regular" }
+      - { encap: "vlan-176", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg77", mode: "regular" }
+      - { encap: "vlan-177", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg78", mode: "regular" }
+      - { encap: "vlan-178", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg79", mode: "regular" }
+      - { encap: "vlan-179", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg80", mode: "regular" }
+      - { encap: "vlan-180", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg81", mode: "regular" }
+      - { encap: "vlan-181", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg82", mode: "regular" }
+      - { encap: "vlan-182", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg83", mode: "regular" }
+      - { encap: "vlan-183", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg84", mode: "regular" }
+      - { encap: "vlan-184", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg85", mode: "regular" }
+      - { encap: "vlan-185", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg86", mode: "regular" }
+      - { encap: "vlan-186", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg87", mode: "regular" }
+      - { encap: "vlan-187", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg88", mode: "regular" }
+      - { encap: "vlan-188", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg89", mode: "regular" }
+      - { encap: "vlan-189", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg90", mode: "regular" }
+      - { encap: "vlan-190", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg91", mode: "regular" }
+      - { encap: "vlan-191", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg92", mode: "regular" }
+      - { encap: "vlan-192", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg93", mode: "regular" }
+      - { encap: "vlan-193", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg94", mode: "regular" }
+      - { encap: "vlan-194", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg95", mode: "regular" }
+      - { encap: "vlan-195", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg96", mode: "regular" }
+      - { encap: "vlan-196", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg97", mode: "regular" }
+      - { encap: "vlan-197", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg98", mode: "regular" }
+      - { encap: "vlan-198", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg99", mode: "regular" }
+      - { encap: "vlan-199", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg100", mode: "regular" }
+      - { encap: "vlan-200", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg101", mode: "regular" }
+      - { encap: "vlan-201", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg102", mode: "regular" }
+      - { encap: "vlan-202", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg103", mode: "regular" }
+      - { encap: "vlan-203", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg104", mode: "regular" }
+      - { encap: "vlan-204", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg105", mode: "regular" }
+      - { encap: "vlan-205", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg106", mode: "regular" }
+      - { encap: "vlan-206", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg107", mode: "regular" }
+      - { encap: "vlan-207", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg108", mode: "regular" }
+      - { encap: "vlan-208", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg109", mode: "regular" }
+      - { encap: "vlan-209", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg110", mode: "regular" }
+      - { encap: "vlan-210", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg111", mode: "regular" }
+      - { encap: "vlan-211", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg112", mode: "regular" }
+      - { encap: "vlan-212", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg113", mode: "regular" }
+      - { encap: "vlan-213", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg114", mode: "regular" }
+      - { encap: "vlan-214", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg115", mode: "regular" }
+      - { encap: "vlan-215", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg116", mode: "regular" }
+      - { encap: "vlan-216", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg117", mode: "regular" }
+      - { encap: "vlan-217", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg118", mode: "regular" }
+      - { encap: "vlan-218", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg119", mode: "regular" }
+      - { encap: "vlan-219", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg120", mode: "regular" }
+      - { encap: "vlan-220", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg121", mode: "regular" }
+      - { encap: "vlan-221", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg122", mode: "regular" }
+      - { encap: "vlan-222", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg123", mode: "regular" }
+      - { encap: "vlan-223", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg124", mode: "regular" }
+      - { encap: "vlan-224", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg125", mode: "regular" }
+      - { encap: "vlan-225", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg126", mode: "regular" }
+      - { encap: "vlan-226", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg127", mode: "regular" }
+      - { encap: "vlan-227", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg128", mode: "regular" }
+      - { encap: "vlan-228", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg129", mode: "regular" }
+      - { encap: "vlan-229", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg130", mode: "regular" }
+      - { encap: "vlan-230", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg131", mode: "regular" }
+      - { encap: "vlan-231", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg132", mode: "regular" }
+      - { encap: "vlan-232", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg133", mode: "regular" }
+      - { encap: "vlan-233", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg134", mode: "regular" }
+      - { encap: "vlan-234", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg135", mode: "regular" }
+      - { encap: "vlan-235", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg136", mode: "regular" }
+      - { encap: "vlan-236", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg137", mode: "regular" }
+      - { encap: "vlan-237", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg138", mode: "regular" }
+      - { encap: "vlan-238", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg139", mode: "regular" }
+      - { encap: "vlan-239", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg140", mode: "regular" }
+      - { encap: "vlan-240", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg141", mode: "regular" }
+      - { encap: "vlan-241", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg142", mode: "regular" }
+      - { encap: "vlan-242", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg143", mode: "regular" }
+      - { encap: "vlan-243", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg144", mode: "regular" }
+      - { encap: "vlan-244", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg145", mode: "regular" }
+      - { encap: "vlan-245", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg146", mode: "regular" }
+      - { encap: "vlan-246", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg147", mode: "regular" }
+      - { encap: "vlan-247", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg148", mode: "regular" }
+      - { encap: "vlan-248", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg149", mode: "regular" }
+      - { encap: "vlan-249", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg150", mode: "regular" }
+      - { encap: "vlan-250", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg151", mode: "regular" }
+      - { encap: "vlan-251", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg152", mode: "regular" }
+      - { encap: "vlan-252", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg153", mode: "regular" }
+      - { encap: "vlan-253", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg154", mode: "regular" }
+      - { encap: "vlan-254", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg155", mode: "regular" }
+      - { encap: "vlan-255", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg156", mode: "regular" }
+      - { encap: "vlan-256", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg157", mode: "regular" }
+      - { encap: "vlan-257", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg158", mode: "regular" }
+      - { encap: "vlan-258", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg159", mode: "regular" }
+      - { encap: "vlan-259", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg160", mode: "regular" }
+      - { encap: "vlan-260", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg161", mode: "regular" }
+      - { encap: "vlan-261", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg162", mode: "regular" }
+      - { encap: "vlan-262", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg163", mode: "regular" }
+      - { encap: "vlan-263", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg164", mode: "regular" }
+      - { encap: "vlan-264", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg165", mode: "regular" }
+      - { encap: "vlan-265", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg166", mode: "regular" }
+      - { encap: "vlan-266", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg167", mode: "regular" }
+      - { encap: "vlan-267", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg168", mode: "regular" }
+      - { encap: "vlan-268", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg169", mode: "regular" }
+      - { encap: "vlan-269", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg170", mode: "regular" }
+      - { encap: "vlan-270", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg171", mode: "regular" }
+      - { encap: "vlan-271", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg172", mode: "regular" }
+      - { encap: "vlan-272", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg173", mode: "regular" }
+      - { encap: "vlan-273", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg174", mode: "regular" }
+      - { encap: "vlan-274", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg175", mode: "regular" }
+      - { encap: "vlan-275", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg176", mode: "regular" }
+      - { encap: "vlan-276", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg177", mode: "regular" }
+      - { encap: "vlan-277", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg178", mode: "regular" }
+      - { encap: "vlan-278", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg179", mode: "regular" }
+      - { encap: "vlan-279", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg180", mode: "regular" }
+      - { encap: "vlan-280", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg181", mode: "regular" }
+      - { encap: "vlan-281", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg182", mode: "regular" }
+      - { encap: "vlan-282", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg183", mode: "regular" }
+      - { encap: "vlan-283", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg184", mode: "regular" }
+      - { encap: "vlan-284", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg185", mode: "regular" }
+      - { encap: "vlan-285", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg186", mode: "regular" }
+      - { encap: "vlan-286", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg187", mode: "regular" }
+      - { encap: "vlan-287", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg188", mode: "regular" }
+      - { encap: "vlan-288", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg189", mode: "regular" }
+      - { encap: "vlan-289", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg190", mode: "regular" }
+      - { encap: "vlan-290", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg191", mode: "regular" }
+      - { encap: "vlan-291", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg192", mode: "regular" }
+      - { encap: "vlan-292", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg193", mode: "regular" }
+      - { encap: "vlan-293", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg194", mode: "regular" }
+      - { encap: "vlan-294", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg195", mode: "regular" }
+      - { encap: "vlan-295", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg196", mode: "regular" }
+      - { encap: "vlan-296", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg197", mode: "regular" }
+      - { encap: "vlan-297", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg198", mode: "regular" }
+      - { encap: "vlan-298", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg199", mode: "regular" }
+      - { encap: "vlan-299", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg200", mode: "regular" }
+      - { encap: "vlan-300", tDn: "uni/tn-ProfilingTenant/ap-ap1/epg-epg201", mode: "regular" }
+  tasks:
+    - name: Render bulk ACI configuration
+      template:
+        src: "{{ template_file }}" 
+        dest: "{{ output_file }}"
+    - name: Log into APIC 
+      ansible.builtin.uri:
+        url: 'https://{{inventory_hostname}}/api/aaaLogin.json'
+        return_content: true
+        validate_certs: false
+        body_format: json
+        # aci_username and aci_password come from inventory file
+        body: '{"aaaUser":{"attributes":{"name":"{{aci_username }}","pwd":"{{aci_password}}"}}}'
+        method: POST
+      register: this
+      delegate_to: localhost
+    - name: Display auth cookie
+      debug:
+        var: this.cookies_string
+    - name: Store auth cookie
+      ansible.builtin.set_fact:
+        aciCookie: '{{ this.set_cookie }}'
+    - name: Load and parse POST content
+      vars:
+        parsed_file: "{{ lookup('file', output_file) | from_json }}"
+      set_fact:
+        url: "{{ parsed_file | json_query('url') }}"
+        payload: "{{ parsed_file | json_query('payload') }}"
+    - name: POST raw content to APIC in one shot
+      ansible.builtin.uri:
+        url: 'https://{{ inventory_hostname }}{{ url }}'
+        return_content: true
+        validate_certs: false
+        body_format: json
+        method: POST
+        headers:
+          Cookie: "{{ aciCookie }}"
+        body: "{{ payload }}"
+      register: that
+      delegate_to: localhost
+      when: aciCookie is defined 
