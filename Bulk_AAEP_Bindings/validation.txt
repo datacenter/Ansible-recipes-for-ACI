@@ -1,0 +1,42 @@
+### With 1000 EPGs ####
+
+Executing playbook bulkAaepBindings.yaml
+
+- dot3 on hosts: dot3 -
+Import EPG definitions...
+Monday 26 February 2024  16:00:39 +0100 (0:00:00.024)       0:00:00.024 *******
+  10.48.168.3 ok
+Render bulk ACI configuration...
+Monday 26 February 2024  16:00:40 +0100 (0:00:00.862)       0:00:00.886 *******
+  10.48.168.3 done
+Log into APIC...
+Monday 26 February 2024  16:00:41 +0100 (0:00:01.349)       0:00:02.235 *******
+  10.48.168.3 -> localhost ok | msg: OK (3377 bytes)
+Display auth cookie...
+Monday 26 February 2024  16:00:42 +0100 (0:00:00.686)       0:00:02.922 *******
+  10.48.168.3 ok: {
+    "changed": false,
+    "this.cookies_string": "APIC-cookie=eyJhbGciOiJZKzI1NiIsImtpZCI6Ink1MWFtNGx6N25wdGpxeG9icGJ2OHJ5OW15bWNkN2g5IiwidHlwIjoiand0In0.eyJyYmFjIjpbeyJkb21haW4iOiJtZ210Iiwicm9sZXNSIjowLCJyb2xlc1ciOjF9LHsiZG9tYWluIjoiY29tbW9uIiwicm9sZXNSIjoxODM1MDA0LCJyb2xlc1ciOjF9LHsiZG9tYWluIjoiYWxsIiwicm9sZXNSIjowLCJyb2xlc1ciOjF9XSwiaXNzIjoiQUNJIEFQSUMiLCJ1c2VybmFtZSI6ImFuc2libGUiLCJ1c2VyaWQiOjE1Njk3LCJ1c2VyZmxhZ3MiOjAsImlhdCI6MTcwODk1OTY0MiwiZXhwIjoxNzA4OTY5MjQyLCJzZXNzaW9uaWQiOiIzTU15eDdKM1RDMndNMmRHZS8wblVnPT0ifQ.Kl7Rw4gvm6GOC2JM2qlg1XOJsQo2etnClGvuzYzgT7n7nCIRabhAVROIuZ6Awg-nAWDwVc5wowoz-veAhHrLZuW6a4NNG3dYy2UaeH1mDJ2avT-JVC95toYXptBxupvKNnczr7wQ_wotHa6RGfYFMlbPWkbqFmhAMTijAoN3gZtjfGbEgt0mNy3A6N5k_uiQkvMEvzFF4RwgacryIy7SX66E6twgAvPbIeecvClqtceIhCGEm214s3vHZn_39i_xtANnbR3YjZXidfyl2BRtJSDPfvPNTCHLvaoOEqyJ15UKEqOSVcZNg1C-9NcrgC0ixldbzgsPKtpVVyUBIUjbRg"
+}
+Store auth cookie...
+Monday 26 February 2024  16:00:42 +0100 (0:00:00.659)       0:00:03.582 *******
+  10.48.168.3 ok
+Load and parse POST content...
+Monday 26 February 2024  16:00:43 +0100 (0:00:00.716)       0:00:04.299 *******
+  10.48.168.3 ok
+POST raw content to APIC in one shot...
+Monday 26 February 2024  16:00:44 +0100 (0:00:01.196)       0:00:05.495 *******
+  10.48.168.3 -> localhost ok | msg: OK (30 bytes)
+
+- Play recap -
+  10.48.168.3                : ok=7    changed=1    unreachable=0    failed=0    rescued=0    ignored=0
+Monday 26 February 2024  16:00:46 +0100 (0:00:02.060)       0:00:07.555 *******
+===============================================================================
+POST raw content to APIC in one shot --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 2.06s
+Render bulk ACI configuration ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 1.35s
+Load and parse POST content ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ 1.20s
+Import EPG definitions ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 0.86s
+Store auth cookie ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 0.72s
+Log into APIC -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 0.69s
+Display auth cookie -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 0.66s
+Playbook run took 0 days, 0 hours, 0 minutes, 7 seconds
