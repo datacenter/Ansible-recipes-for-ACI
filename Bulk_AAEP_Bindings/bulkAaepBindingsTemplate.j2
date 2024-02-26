@@ -20,7 +20,7 @@
                                    "encap": "{{ epg.encap }}",
                                    "mode": "{{ epg.mode | default('regular') }}",
                                    "tDn": "{{ epg.tDn }}",
-                                   "status": "created"
+                                   "status": "{{ epg.status | default('created,modified') }}"
                                 }
                             }
                          }{% if not loop.last %},{% endif %}

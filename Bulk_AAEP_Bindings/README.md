@@ -14,6 +14,8 @@ What you need:
 ## _How to use this code_
 
 Just run the playbook after adapting it for your Ansible inventory and desired AAEP/EPG bindings.
+Define EPG to AAEP bindings in the bulkAaepBindingsDefinition.vars file.
+Just set the status to "deleted" for bindings you wish to delete. Default is created/modified.
 
 ## _Notes_
 
