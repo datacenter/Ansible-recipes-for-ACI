@@ -8,6 +8,7 @@ The playbook works like the Postman browser plugin. It uses built-in modules (UR
 What you need:
 
 - an inventory file for your ACI fabric with aci_username and aci_password populated
+  - update March 11 2024: bulkAaepBindingsCertAuthN.yaml uses certificate-based authN using the aci_rest Ansible module from the ACI Ansible collection
 - an Ansible installation that can process Jinja2 templates
 - an Ansible installation that can parse JSON
 

@@ -1,0 +1,38 @@
+---
+- hosts: dot3
+  connection: local
+  gather_facts: no
+
+  vars:
+    template_file: './bulkAaepBindingsTemplate.j2'
+    output_file: './bulkAaepBindingsRendered.json'
+    aaep_dn: "uni/infra/attentp-A"  
+    aaep_name: "A"
+    url: "/api/node/mo/uni/infra/attentp-A.json"
+    aci_credentials: &aci_login
+      hostname: '{{ inventory_hostname }}'
+      use_ssl: yes
+      use_proxy: no
+      username: ansible
+      private_key: ansible.key
+      validate_certs: no
+  tasks:
+    - name: Import EPG definitions
+      include_vars:
+        file: './bulkAaepBindingsDefinitions.vars'
+    - name: Render bulk ACI configuration
+      template:
+        src: "{{ template_file }}" 
+        dest: "{{ output_file }}"
+    - name: Load and parse POST content
+      vars:
+        parsed_file: "{{ lookup('file', output_file) | from_json }}"
+      set_fact:
+        url: "{{ parsed_file | json_query('url') }}"
+        payload: "{{ parsed_file | json_query('payload') }}"
+    - name: POST raw content to APIC in one shot using cert authN
+      aci_rest:
+        <<: *aci_login
+        path: "{{ url }}"
+        method: post
+        content: "{{ payload }}"
