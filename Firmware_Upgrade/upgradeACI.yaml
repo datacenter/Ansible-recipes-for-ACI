@@ -1,0 +1,159 @@
+---
+- name: ACI Fabric Upgrade Playbook
+  # this playbook:
+  #   - uploads switch/apic images
+  #   - creates upgrade policies for odd/even switches
+  #   - creates groups of switches (one group per switch) and assign either odd or even policy per group
+  #   - does not use node blocks (fabricNodeBlk) with more than one switch because those confuse the GUI
+  #   - does not trigger the update (manual intervention required)
+  hosts: 10.48.168.3
+  connection: local
+  gather_facts: no
+  vars:
+    firmware32_image_name: "n9k614h.bin"
+    firmware64_image_name: "n9k614h-cs64.bin"
+    apic_image_name:       "apic614h.iso"
+    repo_url:              "10.48.168.169/ACI/"
+    version_string:        "n9000-16.1(4h)"
+    nodes_list:
+      - 101
+      - 102
+      - 104
+      - 666
+    apic_login: &apic_login
+      host:     "{{ inventory_hostname }}"
+      username: "{{ apic_username }}"
+      password: "{{ apic_password }}"
+      validate_certs: false
+
+  tasks:
+    - name: Ensure APIC is reachable
+      cisco.aci.aci_system:
+        <<: *apic_login
+        state: query
+      delegate_to: localhost  
+      tags:
+        - precheck_validation
+
+    - name: Upload 32-bit firmware image to APIC
+      aci_firmware_source:
+        <<: *apic_login
+        source: "{{ firmware32_image_name }}"
+        url: "{{ repo_url }}{{ firmware32_image_name }}"
+        url_protocol: http
+        state: present
+      delegate_to: localhost  
+      tags:
+        - upload_firmware
+
+    - name: Upload 64-bit firmware image to APIC
+      aci_firmware_source:
+        <<: *apic_login
+        source: "{{ firmware64_image_name }}"
+        url: "{{ repo_url}}{{ firmware64_image_name }}"
+        url_protocol: http
+        state: present
+      delegate_to: localhost  
+      tags:
+        - upload_firmware
+
+    - name: Upload controller image to APIC
+      aci_firmware_source:
+        <<: *apic_login
+        source: "{{ apic_image_name }}"
+        url: "{{ repo_url }}{{ apic_image_name }}"
+        url_protocol: http
+        state: present
+      delegate_to: localhost  
+      tags:
+        - upload_firmware
+
+    - name: One Time Scheduler
+      cisco.aci.aci_fabric_scheduler:
+        <<: *apic_login
+        name: ansible-OneTime
+        windowname: OneTime
+        recurring: false
+        concurCap: 20
+        date: "2025-08-28T22:00:00"
+        state: present
+      delegate_to: localhost  
+      tags:
+        - scheduler
+
+    - name: Create odd switch maintenance policy
+      cisco.aci.aci_maintenance_policy:
+        <<: *apic_login
+        download_state: triggered
+        ignore_compat: true
+        notify_condition: notify_only_on_failures  
+        name: ansible-odd_maintenance_policy
+        scheduler: ansible-OneTime
+        version: "{{ version_string }}"
+        state: present
+      delegate_to: localhost
+      tags:
+        - switch_maintenance_policy
+
+    - name: Create even switch maintenance policy
+      cisco.aci.aci_maintenance_policy:
+        <<: *apic_login
+        download_state: triggered
+        ignore_compat: true
+        notify_condition: notify_only_on_failures  
+        name: ansible-even_maintenance_policy
+        scheduler: ansible-OneTime
+        version: "{{ version_string }}"
+        state: present
+      delegate_to: localhost
+      tags:
+        - switch_maintenance_policy
+
+    - name: Create maintenance group for odd nodes
+      cisco.aci.aci_maintenance_group:
+        <<: *apic_login
+        firmware_nodes_type: switch  
+        group: "group_odd_node_{{ nodes_list[item] }}"
+        policy: ansible-odd_maintenance_policy
+        state: present
+      # pick item 0, 2, 4, etc. from nodes_list
+      loop: "{{ range(0, nodes_list | length, 2) | list }}"
+      delegate_to: localhost
+      tags:
+        - maintenance_groups
+
+    - name: Create maintenance group for even nodes
+      cisco.aci.aci_maintenance_group:
+        <<: *apic_login
+        firmware_nodes_type: switch  
+        group: "group_even_node_{{ nodes_list[item] }}"
+        policy: ansible-even_maintenance_policy
+        state: present
+      # pick item 1, 3, 5, etc. from nodes_list
+      loop: "{{ range(1, nodes_list | length, 2) | list }}"
+      delegate_to: localhost
+      tags:
+        - maintenance_groups
+
+    - name: Add nodes to odd maintenance groups
+      cisco.aci.aci_maintenance_group_node:
+        <<: *apic_login
+        group: "group_odd_node_{{ nodes_list[item] }}"
+        node: "{{ nodes_list[item] }}"
+        state: present
+      loop: "{{ range(0, nodes_list | length, 2) | list }}"
+      delegate_to: localhost
+      tags:
+        - maintenance_groups
+
+    - name: Add nodes to even maintenance groups
+      cisco.aci.aci_maintenance_group_node:
+        <<: *apic_login
+        group: "group_even_node_{{ nodes_list[item] }}"
+        node: "{{ nodes_list[item] }}"
+        state: present
+      loop: "{{ range(1, nodes_list | length, 2) | list }}"
+      delegate_to: localhost
+      tags:
+        - maintenance_groups
+
